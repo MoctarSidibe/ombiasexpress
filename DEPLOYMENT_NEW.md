@@ -99,21 +99,20 @@ chmod 755 /var/www/ombiaexpress
 
 ## Step 5 — Upload Your Code
 
-### Option A — Using Git (recommended)
-
 ```bash
 cd /var/www/ombiaexpress
 git init
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+git remote add origin https://github.com/MoctarSidibe/ombiasexpress.git
 git pull origin main
 ```
 
-### Option B — Using FileZilla (drag and drop)
+You should see all project files appear in `/var/www/ombiaexpress/`.
 
-1. Open FileZilla
-2. Host: `37.60.240.199` | User: `root` | Password: your SSH password | Port: `22`
-3. Navigate to `/var/www/ombiaexpress/` on the right panel
-4. Drag your `server/` and `admin/` folders from your PC to the server
+Verify:
+```bash
+ls /var/www/ombiaexpress/
+# should show: server/  admin/  mobile/  README.md  DEPLOYMENT.md  ...
+```
 
 ---
 
@@ -227,7 +226,7 @@ This creates an `admin/dist/` folder — that's what Nginx will serve.
 
 ```bash
 cd /var/www/ombiaexpress/server
-pm2 start server.js --name "ombiaexpress-api" --max-memory-restart 400M
+pm2 start pm2.config.js --env production
 pm2 save            # saves so it restarts after server reboot
 pm2 startup         # follow the printed command to enable auto-start
 ```
@@ -235,7 +234,7 @@ pm2 startup         # follow the printed command to enable auto-start
 Check it's running:
 ```bash
 pm2 status
-pm2 logs ombiaexpress-api --lines 30
+pm2 logs ombia-express-api --lines 30
 ```
 
 ---
@@ -421,10 +420,10 @@ Then log in at `http://37.60.240.199/admin/` (or your domain).
 
 ```bash
 # View live logs
-pm2 logs ombiaexpress-api
+pm2 logs ombia-express-api
 
 # Restart API after code update
-pm2 restart ombiaexpress-api
+pm2 restart ombia-express-api
 
 # Check all running apps on server (yours + others)
 pm2 list
@@ -449,16 +448,16 @@ lsof -i :5000
 ```bash
 cd /var/www/ombiaexpress
 
-# Pull latest code (if using Git)
+# Pull latest code from GitHub
 git pull origin main
 
 # Update backend
-cd server && npm install --production
-pm2 restart ombiaexpress-api
+cd server && npm install --omit=dev
+pm2 restart ombia-express-api
 
 # Update admin panel
 cd ../admin && npm install && npm run build
-# (Nginx serves the new dist/ automatically — no restart needed)
+# Nginx serves the new dist/ automatically — no restart needed
 ```
 
 ---
@@ -484,7 +483,7 @@ cd ../admin && npm install && npm run build
 
 | Problem | Fix |
 |---------|-----|
-| `502 Bad Gateway` | API not running → `pm2 restart ombiaexpress-api` |
+| `502 Bad Gateway` | API not running → `pm2 restart ombia-express-api` |
 | `404 on admin panel` | Check `admin/dist/` exists → run `npm run build` again |
 | `ECONNREFUSED` on DB | PostgreSQL not running → `systemctl start postgresql` |
 | Mobile still says "serveur inaccessible" | Update `mobile/.env` with the server IP/domain, rebuild app |
