@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="docs/logo.png" alt="Ombia Express" width="220" />
+<img src="docs/logo.png" alt="Ombia Express" width="220" /><br/>
 
 # OMBIA EXPRESS
 
-### 🌍 La Super-Application de Mobilité et de Services pour l'Afrique Centrale
+### 🌍 La Super-Application de Mobilité et de Services pour l'Afrique
 
 *Connecter les personnes. Simplifier le quotidien. Construire l'avenir.*
 
