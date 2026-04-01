@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment secrets — NEVER commit
+.env
+**/.env
+.env.local
+.env.production
+.env.*.local
+
+# Build output
+admin/dist/
+mobile/dist/
+web-build/
+
+# Expo
+.expo/
+.expo-shared/
+
+# Logs
+*.log
+**/logs/
+
+# Uploads (user-generated content, not source code)
+server/uploads/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp / generated scripts (not source code)
+write_deploy.js
+generate_pdfs.js
+presentation_word.js
+nul
+~$*
+
+# Large binary / media files not needed in repo
+*.pdf
+*.docx
+*.png
+*.jpg
+*.jpeg
+Screenshot_*
+OmbiaExpress-Logo-Vecteur*
+Ombia-Express*
+Ombias*
+airtel_money*
+card_method_payment*
+moov_money*
+delivery*.json
+
+# Python
+__pycache__/
+*.pyc
+generate_doc.py
+
+# Claude internal
+.claude/
