@@ -1,252 +1,201 @@
-# RideShare - Uber-Like Ride-Sharing App
+# Ombia Express
 
-A modern, cross-platform ride-sharing application built with React Native (Expo) and Node.js.
+**Super-application de mobilité et de services pour l'Afrique Centrale**
 
-## 🚀 Features
+Ombia Express est une plateforme tout-en-un qui connecte passagers, chauffeurs, livreurs, propriétaires de véhicules, commerçants et clients — le tout dans une seule application mobile.
 
-- **Dual Role Support**: Users can be riders, drivers, or both
-- **Real-time Tracking**: Live GPS location tracking during rides
-- **Vehicle management**: Drivers can register and manage their vehicles
-- **Smart Matching**: Algorithm to match riders with nearest available drivers
-- **Dynamic Pricing**: Fare calculation based on distance, time, and demand
-- **Rating System**: Two-way ratings to maintain quality
-- **In-app Payments**: Secure payment processing
-- **Commission-based Model**: Uber-like business model (configurable commission rate)
+---
 
-## 📱 Mobile App (React Native + Expo)
+## Services proposés
 
-### Prerequisites
+| Service | Description |
+|---------|-------------|
+| **Transport VTC** | Demande de course en temps réel, suivi GPS, tarification dynamique |
+| **Location de voiture** | Mise en location et réservation entre particuliers |
+| **Livraison express** | Envoi et suivi de colis via coursiers vérifiés |
+| **E-commerce** | Boutique intégrée — vente et achat de produits |
+| **Marché automobile** | Achat et vente de véhicules d'occasion |
+| **Ombia Wallet** | Portefeuille numérique, recharge Airtel Money / Moov Money, historique |
 
-- Node.js 16+ installed
-- Expo Go app on your phone ([iOS](https://apps.apple.com/app/expo-go/id982107779) | [Android](https://play.google.com/store/apps/details?id=host.exp.exponent))
+---
 
-### Setup
+## Stack technique
+
+### Application mobile
+- React Native + Expo SDK ~50
+- React Navigation (stack + tabs)
+- React Native Maps (OpenStreetMap — aucune clé API requise)
+- Socket.io client (temps réel)
+- Expo SecureStore + AsyncStorage
+- Expo Notifications, Expo Location, Expo Camera
+
+### Serveur API
+- Node.js + Express
+- PostgreSQL + Sequelize ORM
+- Redis (blacklist tokens, cache)
+- Socket.io (WebSocket temps réel)
+- JWT (authentification)
+- PM2 (process manager en production)
+
+### Panel d'administration
+- React 18 + Vite
+- React Router DOM v6
+- Recharts (graphiques)
+- Axios
+
+---
+
+## Structure du projet
+
+```
+ombiasexpress/
+├── server/          API Node.js (port 5000)
+│   ├── models/      Modèles Sequelize (User, Ride, Wallet, ...)
+│   ├── routes/      Endpoints REST
+│   ├── middleware/  Auth, sécurité, brute-force
+│   ├── services/    Socket.io, notifications, commissions
+│   ├── scripts/     Migrations DB
+│   └── pm2.config.js
+├── mobile/          Application React Native / Expo
+│   └── src/
+│       ├── screens/ Tous les écrans (Auth, Rider, Driver, Rental, ...)
+│       ├── navigation/
+│       ├── context/ AuthContext, LanguageContext
+│       └── services/ API, Socket, Notifications
+└── admin/           Panel d'administration React + Vite
+    └── src/
+        └── pages/   Dashboard, Users, Rides, Vehicles, Wallet, ...
+```
+
+---
+
+## Lancer le projet en développement
+
+### Prérequis
+
+- Node.js 20+
+- PostgreSQL 14+
+- Redis
+- Expo Go (sur téléphone) ou émulateur Android/iOS
+
+### 1 — Serveur API
+
+```bash
+cd server
+cp .env.example .env
+# Remplir les valeurs dans .env (DB, JWT_SECRET, ADMIN_SECRET)
+npm install
+npm run dev
+```
+
+Le serveur démarre sur `http://localhost:5000`.  
+Les tables sont créées automatiquement au premier démarrage.
+
+### 2 — Application mobile
 
 ```bash
 cd mobile
 npm install
+npx expo start --clear
 ```
 
-### Configuration
+Scanner le QR code avec Expo Go.
 
-1. Update API URL in `src/services/api.service.js` and `src/services/socket.service.js`:
-   - Replace `http://localhost:5000` with your backend URL
-   - For testing on physical device, use your computer's IP address (e.g., `http://192.168.1.100:5000`)
+> **Note** : Mettre à jour `EXPO_PUBLIC_API_URL` dans `mobile/.env` si le serveur n'est pas sur `localhost`.
 
-2. Add Google Maps API key in `app.json`:
-   - Get API key from [Google Cloud Console](https://console.cloud.google.com/)
-   - Enable Maps SDK for Android and iOS
-   - Update `YOUR_ANDROID_GOOGLE_MAPS_API_KEY` and `YOUR_IOS_GOOGLE_MAPS_API_KEY`
-
-### Run the App
+### 3 — Panel Admin
 
 ```bash
-npm start
-```
-
-Then:
-1. Scan the QR code with Expo Go app (Android) or Camera app (iOS)
-2. The app will load on your device instantly
-3. Make changes to the code and see them live on your phone!
-
-### Build for Production
-
-```bash
-# Install EAS CLI
-npm install -g eas-cli
-
-# Login to Expo
-eas login
-
-# Build for Android
-eas build --platform android
-
-# Build for iOS
-eas build --platform ios
-```
-
-## 🖥️ Backend API (Node.js + Express)
-
-### Prerequisites
-
-- Node.js 16+ installed
-- PostgreSQL database installed and running
-
-### Setup
-
-```bash
-cd server
+cd admin
+cp .env.example .env
 npm install
-```
-
-### Configuration
-
-1. Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Update `.env` with your credentials:
-   ```env
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_NAME=rideshare_db
-   DB_USER=postgres
-   DB_PASSWORD=your_password
-   
-   JWT_SECRET=your_secret_key_here
-   
-   GOOGLE_MAPS_API_KEY=your_google_maps_api_key
-   STRIPE_SECRET_KEY=your_stripe_key
-   
-   COMMISSION_RATE=20
-   BOOKING_FEE=1.5
-   ```
-
-### Create Database
-
-```bash
-# Connect to PostgreSQL
-psql -U postgres
-
-# Create database
-CREATE DATABASE rideshare_db;
-```
-
-### Run the Server
-
-```bash
-# Development mode (with auto-reload)
 npm run dev
-
-# Production mode
-npm start
 ```
 
-The server will:
-- ✓ Connect to PostgreSQL
-- ✓ Auto-create all database tables
-- ✓ Start on port 5000 (or PORT from .env)
-
-### API Endpoints
-
-#### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login
-- `GET /api/auth/profile` - Get current user
-- `PUT /api/auth/profile` - Update profile
-
-#### Vehicles
-- `POST /api/vehicles` - Register vehicle
-- `GET /api/vehicles` - Get user's vehicles
-- `PUT /api/vehicles/:id` - Update vehicle
-- `DELETE /api/vehicles/:id` - Delete vehicle
-
-#### Rides
-- `POST /api/rides/request` - Request a ride
-- `POST /api/rides/:id/accept` - Accept ride (driver)
-- `POST /api/rides/:id/start` - Start ride
-- `POST /api/rides/:id/complete` - Complete ride
-- `POST /api/rides/:id/cancel` - Cancel ride
-- `POST /api/rides/:id/rate` - Rate completed ride
-- `GET /api/rides/history` - Get ride history
-- `GET /api/rides/active` - Get active ride
-
-## 🎯 Business Model
-
-- **Commission**: 20% of each ride fare (configurable)
-- **Booking Fee**: $1.50 per ride (configurable)
-- **Surge Pricing**: Dynamic pricing during high demand
-- **Vehicle Types**: Economy, Comfort, Premium, XL
-
-### Fare Calculation
-
-```
-Base Fare: $2.00
-+ Distance: $1.50/km
-+ Time: $0.30/min
-× Surge Multiplier (if applicable)
-+ Booking Fee: $1.50
-= Total Fare
-
-Commission = Total × 20%
-Driver Earnings = Total - Commission
-```
-
-## 📊 Database Schema
-
-- **users**: User accounts with role (rider/driver/both)
-- **vehicles**: Driver vehicles with approval status
-- **rides**: Ride requests and tracking
-- **payments**: Payment records with commission tracking
-
-## 🌐 Testing on Your Network
-
-To test the mobile app on your phone while the backend runs on your computer:
-
-1. **Find your computer's IP address**:
-   ```bash
-   # Windows
-   ipconfig
-   
-   # Mac/Linux
-   ifconfig
-   ```
-
-2. **Update mobile app URLs**:
-   - In `mobile/src/services/api.service.js`: Change `http://localhost:5000` to `http://YOUR_IP:5000`
-   - In `mobile/src/services/socket.service.js`: Change `http://localhost:5000` to `http://YOUR_IP:5000`
-
-3. **Allow firewall access** to port 5000 on your computer
-
-4. **Make sure both devices are on the same network**
-
-## 📱 Tech Stack
-
-### Mobile
-- React Native (Expo)
-- React Navigation
-- React Native Maps
-- Socket.io Client
-- Axios
-- AsyncStorage
-
-### Backend
-- Node.js
-- Express
-- PostgreSQL + Sequelize
-- Socket.io
-- JWT Authentication
-- Bcrypt
-
-## 🚧 Roadmap
-
-- [x] User authentication
-- [x] Vehicle registration
-- [x] Ride request/accept flow
-- [x] Real-time location tracking
-- [x] Rating system
-- [ ] Payment integration (Stripe)
-- [ ] Push notifications
-- [ ] In-app messaging
-- [ ] Ride scheduling
-- [ ] Promo codes
-- [ ] Admin dashboard
-
-## 📄 License
-
-MIT
-
-## 🤝 Contributing
-
-Contributions welcome! Feel free to open issues or submit PRs.
+Panel disponible sur `http://localhost:3000`.
 
 ---
 
-**Note**: This is a development version. Before deploying to production:
-- Set up proper SSL/HTTPS
-- Use environment-specific configurations
-- Implement proper error handling
-- Add comprehensive logging
-- Set up monitoring and analytics
-- Comply with local regulations for ride-sharing services
+## Déploiement en production
+
+Voir [DEPLOYMENT.md](./DEPLOYMENT.md) pour le guide complet de déploiement sur serveur Linux avec PM2.
+
+---
+
+## Variables d'environnement (serveur)
+
+Copier `server/.env.example` vers `server/.env` et remplir :
+
+```env
+PORT=5000
+NODE_ENV=production
+
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_NAME=ombiaexpress
+DB_USER=ombiauser
+DB_PASSWORD=MOT_DE_PASSE_FORT
+
+JWT_SECRET=<générer avec crypto.randomBytes(64).toString('hex')>
+JWT_EXPIRE=7d
+
+ADMIN_SECRET=<secret fort unique>
+
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+
+ALLOWED_ORIGINS=http://localhost:3000
+
+COMMISSION_RATE=0.15
+BOOKING_FEE=0.10
+APP_NAME=Ombia Express
+```
+
+---
+
+## Modèle économique
+
+| Source | Taux |
+|--------|------|
+| Commission sur chaque course | 15 % |
+| Frais de réservation location | 10 % |
+| Commission livraison | 15 % |
+| Commission e-commerce | 15 % |
+| Réduction paiement Ombia Wallet | −5 % pour l'utilisateur |
+
+---
+
+## Sécurité
+
+- Authentification JWT avec blacklist Redis
+- Protection brute-force (rate limiting par IP + identifiant)
+- Helmet.js (headers HTTP sécurisés)
+- CORS restreint aux origines autorisées
+- Mots de passe hashés avec bcrypt
+- Variables sensibles exclusivement en `.env` (jamais committées)
+- KYC obligatoire avant activation des services chauffeur / livreur / commerçant
+
+---
+
+## Feuille de route
+
+- [x] Authentification par numéro de téléphone
+- [x] Transport VTC temps réel (Socket.io)
+- [x] Location de voiture entre particuliers
+- [x] Livraison express
+- [x] E-commerce & marché automobile
+- [x] Ombia Wallet (recharge, paiement, historique)
+- [x] KYC documents (photos, vérification admin)
+- [x] Panel admin complet
+- [x] Multi-rôles (un utilisateur peut être chauffeur ET commerçant)
+- [ ] Intégration Airtel Money / Moov Money réelle
+- [ ] Notifications push (Expo Push Notifications)
+- [ ] Build APK / IPA production (EAS Build)
+- [ ] Domaine + HTTPS (Nginx + Certbot)
+- [ ] Application disponible sur Play Store / App Store
+
+---
+
+## Licence
+
+Propriétaire — Ombia Express © 2026. Tous droits réservés.
