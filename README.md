@@ -1,10 +1,7 @@
 <div align="center">
-
-<img src="docs/logo.png" alt="Ombia Express" width="220" /><br/>
-
-# OMBIA EXPRESS
-
-### 🌍 La Super-Application de Mobilité et de Services pour l'Afrique
+<img src="docs/logo.png" alt="Ombia Express" width="320" />
+<h1>OMBIA EXPRESS</h1>
+<h3>🌍 La Super-Application de Mobilité et de Services pour l'Afrique</h3>
 
 *Connecter les personnes. Simplifier le quotidien. Construire l'avenir.*
 
@@ -22,9 +19,44 @@
 
 ## 💡 Qu'est-ce qu'Ombia Express ?
 
-**Ombia Express** est une super-application mobile tout-en-un conçue pour l'Afrique Centrale. En une seule plateforme, elle regroupe le transport VTC, la location de voitures entre particuliers, la livraison express de colis, le commerce en ligne, le marché automobile et un portefeuille numérique adapté au contexte local (Airtel Money, Moov Money).
+**Ombia Express** est un **écosystème Fintech** complet, bâti sur une super-application mobile conçue pour l'Afrique. En une seule plateforme unifiée, Ombia Express connecte les utilisateurs à travers six services de mobilité et de commerce, tous alimentés par une **infrastructure de paiement digitale souveraine** : l'**Ombia Wallet**.
 
-L'objectif : remplacer cinq ou six applications différentes par une seule, fluide, sécurisée, et pensée pour les réalités africaines — connectivité variable, paiements mobile money, multilinguisme.
+Chaque action sur la plateforme — une course, une location, une livraison, un achat — génère un flux financier numérique tracé, sécurisé et redistribué en temps réel entre les acteurs. Les chauffeurs, livreurs et commerçants encaissent leurs revenus instantanément dans leur portefeuille. Les utilisateurs paient, transfèrent, rechargent et retirent depuis leur téléphone, sans banque traditionnelle.
+
+> **La vision :** faire d'Ombia Express le premier point d'entrée dans l'économie numérique pour des millions d'Africains — en partant des services du quotidien pour construire une couche financière accessible à tous.
+
+---
+
+## 🏦 L'Écosystème Fintech Ombia
+
+```
+                    ┌─────────────────────────┐
+                    │      OMBIA WALLET        │
+                    │  💳 Portefeuille Digital  │
+                    └────────────┬────────────┘
+                                 │
+          ┌──────────────────────┼──────────────────────┐
+          │                      │                      │
+    ┌─────▼──────┐        ┌──────▼──────┐       ┌──────▼──────┐
+    │  RECHARGE  │        │  PAIEMENT   │       │   REVENUS   │
+    │            │        │             │       │             │
+    │ Airtel     │        │ −5 % sur    │       │ Chauffeurs  │
+    │ Money      │        │ tous les    │       │ Livreurs    │
+    │ Moov Money │        │ services    │       │ Commerçants │
+    │ Carte      │        │ Ombia       │       │ Propriétaires│
+    └────────────┘        └─────────────┘       └─────────────┘
+```
+
+| Pilier Fintech | Description |
+|----------------|-------------|
+| 💰 **Wallet souverain** | Chaque utilisateur dispose d'un compte de monnaie électronique intégré |
+| 📲 **Mobile Money** | Interopérabilité native avec Airtel Money et Moov Money |
+| ⚡ **Paiements instantanés** | Règlement en temps réel entre clients et prestataires |
+| 📊 **Traçabilité complète** | Chaque transaction est horodatée, référencée et consultable |
+| 🏷️ **Incentive wallet** | Réduction de 5 % pour encourager l'adoption du paiement digital |
+| 💸 **Reversement automatique** | Les gains sont crédités au prestataire dès la fin du service |
+| 🏧 **Retrait à la demande** | Les prestataires retirent leurs fonds vers Mobile Money à tout moment |
+| 🔐 **Sécurité bancaire** | Tokens JWT, Redis blacklist, chiffrement, audit trail complet |
 
 ---
 
