@@ -304,7 +304,7 @@ async function testRental() {
     sep('7. CAR RENTAL');
 
     // Required fields: license_plate, price_per_hour, price_per_day, pickup_lat, pickup_lng, pickup_address, available_from, available_until
-    const car = await req('POST', '/rental/cars', {
+    const car = await req('POST', '/rentals/cars', {
         make: 'Toyota', model: 'RAV4', year: 2021,
         color: 'Black', license_plate: `RNT${ts % 9999}`,
         price_per_hour: 3000, price_per_day: 20000,
@@ -324,13 +324,13 @@ async function testRental() {
         log('Rental', 'Admin approves rental car', approveC.status === 200, approveC.data?.error || '');
     }
 
-    const browse = await req('GET', '/rental/cars/available', null, riderToken);
+    const browse = await req('GET', '/rentals/cars/available', null, riderToken);
     log('Rental', 'Browse available cars', browse.status === 200,
         `${browse.data?.cars?.length ?? 0} car(s)`);
 
     if (!rentalCarId) { log('Rental', 'Book car (skipped)', false, ''); return; }
 
-    const book = await req('POST', '/rental/bookings', {
+    const book = await req('POST', '/rentals/bookings', {
         rental_car_id: rentalCarId,
         requested_start: new Date(Date.now() + 86400000).toISOString(),
         requested_end:   new Date(Date.now() + 86400000 * 3).toISOString(),
@@ -338,7 +338,7 @@ async function testRental() {
     }, riderToken);
     log('Rental', 'Book a car', book.status === 201, book.data?.error || '');
 
-    const myBookings = await req('GET', '/rental/bookings/mine', null, riderToken);
+    const myBookings = await req('GET', '/rentals/bookings/mine', null, riderToken);
     log('Rental', 'My bookings', myBookings.status === 200, myBookings.data?.error || '');
 }
 
