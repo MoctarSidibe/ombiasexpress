@@ -50,6 +50,7 @@ const password    = 'Test@1234';
 let riderToken, driverToken, adminToken;
 let rideId, vehicleId, rentalCarId, deliveryId, productId, listingId, ticketId;
 let driverVerifId, merchantVerifId, courierVerifId;
+let driverId;
 
 // ─── 1. HEALTH ───────────────────────────────────────────────────────────────
 
@@ -76,6 +77,7 @@ async function testAuth() {
     });
     log('Auth', 'Register driver', r2.status === 201, r2.data?.error || '');
     driverToken = r2.data?.token;
+    driverId = r2.data?.user?.id;
 
     const login = await req('POST', '/auth/login', { phone: riderPhone, password });
     log('Auth', 'Login with phone', login.status === 200, login.data?.error || '');
@@ -221,6 +223,12 @@ async function testVehicles() {
     log('Vehicle', 'Register vehicle', create.status === 201, create.data?.error || '');
     vehicleId = create.data?.vehicle?.id;
 
+    // Admin must approve vehicle before driver can accept rides
+    if (vehicleId && adminToken) {
+        const approveV = await req('PUT', `/admin/vehicles/${vehicleId}/status`, { status: 'approved' }, adminToken);
+        log('Vehicle', 'Admin approves vehicle', approveV.status === 200, approveV.data?.error || '');
+    }
+
     const list = await req('GET', '/vehicles', null, driverToken);
     log('Vehicle', 'List my vehicles', list.status === 200,
         `${list.data?.vehicles?.length ?? 0} vehicle(s)`);
@@ -265,7 +273,8 @@ async function testRides() {
         dropoff_address: 'Aéroport Libreville',
         pickup_lat: 0.3924, pickup_lng: 9.4536,
         dropoff_lat: 0.4584, dropoff_lng: 9.4121,
-        vehicle_type: 'sedan', payment_method: 'cash',
+        distance_km: 8.5, duration_minutes: 20,
+        vehicle_type: 'economy', payment_method: 'cash',
     }, riderToken);
     log('Ride', 'Request a ride', ride.status === 201, ride.data?.error || '');
     rideId = ride.data?.ride?.id;
@@ -294,17 +303,26 @@ async function testRides() {
 async function testRental() {
     sep('7. CAR RENTAL');
 
-    // fuel_type: gasoline|diesel|electric|hybrid
+    // Required fields: license_plate, price_per_hour, price_per_day, pickup_lat, pickup_lng, pickup_address, available_from, available_until
     const car = await req('POST', '/rental/cars', {
         make: 'Toyota', model: 'RAV4', year: 2021,
-        color: 'Black', plate_number: `RNT${ts % 9999}`,
-        daily_rate: 25000, location: 'Libreville',
-        latitude: 0.3924, longitude: 9.4536,
+        color: 'Black', license_plate: `RNT${ts % 9999}`,
+        price_per_hour: 3000, price_per_day: 20000,
+        pickup_lat: 0.3924, pickup_lng: 9.4536,
+        pickup_address: 'Libreville Centre',
+        available_from: new Date().toISOString(),
+        available_until: new Date(Date.now() + 30 * 86400000).toISOString(),
         seats: 5, transmission: 'automatic', fuel_type: 'gasoline',
         description: 'SUV fiable',
     }, driverToken);
     log('Rental', 'List rental car', car.status === 201, car.data?.error || '');
     rentalCarId = car.data?.car?.id;
+
+    // Admin must approve rental car before it shows as available
+    if (rentalCarId && adminToken) {
+        const approveC = await req('PUT', `/admin/rentals/cars/${rentalCarId}/status`, { status: 'available' }, adminToken);
+        log('Rental', 'Admin approves rental car', approveC.status === 200, approveC.data?.error || '');
+    }
 
     const browse = await req('GET', '/rental/cars/available', null, riderToken);
     log('Rental', 'Browse available cars', browse.status === 200,
@@ -313,10 +331,10 @@ async function testRental() {
     if (!rentalCarId) { log('Rental', 'Book car (skipped)', false, ''); return; }
 
     const book = await req('POST', '/rental/bookings', {
-        car_id: rentalCarId,
-        start_date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-        end_date:   new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
-        payment_method: 'cash',
+        rental_car_id: rentalCarId,
+        requested_start: new Date(Date.now() + 86400000).toISOString(),
+        requested_end:   new Date(Date.now() + 86400000 * 3).toISOString(),
+        notes: 'Test booking',
     }, riderToken);
     log('Rental', 'Book a car', book.status === 201, book.data?.error || '');
 
@@ -369,12 +387,13 @@ async function testEcommerce() {
     if (!productId) { log('Ecommerce', 'Place order (skipped)', false, ''); return; }
 
     const order = await req('POST', '/orders', {
+        seller_id: driverId,
         items: [{ product_id: productId, quantity: 1 }],
         payment_method: 'cash', delivery_address: 'Libreville, Gabon',
     }, riderToken);
     log('Ecommerce', 'Place order', order.status === 201, order.data?.error || '');
 
-    const myOrders = await req('GET', '/orders/my', null, riderToken);
+    const myOrders = await req('GET', '/orders/mine', null, riderToken);
     log('Ecommerce', 'My orders', myOrders.status === 200, myOrders.data?.error || '');
 }
 
