@@ -396,4 +396,4 @@ const seedWallets = async () => {
     }
 };
 
-module.exports = { sequelize, User, Vehicle, Ride, Payment, RentalCar, RentalBooking, RentalPayment, Setting, Wallet, WalletTransaction, Coupon, CouponRedemption, WalletFeature, CommissionRule, CashbackRule, CashbackTransaction, DriverVerification, CarVerification, MerchantVerification, FleetVerification, CarListing, CourierVerification, Delivery, Product, Order, OrderItem, SupportTicket, SupportMessage, AdminRole, AdminStaff, syncDatabase, testConnection, seedSettings, seedWalletFeatures, seedCommissionRules, seedCashbackRules, seedWallets };
+module.exports = { sequelize, User, Vehicle, Ride, Payment, RentalCar, RentalBooking, RentalPayment, Setting, Wallet, WalletTransaction, Coupon, CouponRedemption, WalletFeature, CommissionRule, CashbackRule, CashbackTransaction, DriverVerification, CarVerification, MerchantVerification, FleetVerification, CarListing, CourierVerification, Delivery, Product, Order, OrderItem, Rating, SupportTicket, SupportMessage, AdminRole, AdminStaff, syncDatabase, testConnection, seedSettings, seedWalletFeatures, seedCommissionRules, seedCashbackRules, seedWallets };
