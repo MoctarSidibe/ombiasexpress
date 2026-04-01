@@ -126,7 +126,7 @@ sudo -u postgres psql
 
 # Inside PostgreSQL shell, run these 4 lines:
 CREATE DATABASE ombiaexpress;
-CREATE USER ombiauser WITH ENCRYPTED PASSWORD 'CHANGE_THIS_PASSWORD';
+CREATE USER ombiauser WITH ENCRYPTED PASSWORD 'OmbiasOmbiasexpress@10';
 GRANT ALL PRIVILEGES ON DATABASE ombiaexpress TO ombiauser;
 \q
 ```
@@ -158,31 +158,30 @@ DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_NAME=ombiaexpress
 DB_USER=ombiauser
-DB_PASS=CHANGE_THIS_PASSWORD
+DB_PASSWORD=CHANGE_THIS_PASSWORD
 
 # ── JWT ─────────────────────────────────────────────────────
-# Generate a strong secret: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+# Generate: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 JWT_SECRET=PASTE_YOUR_64_CHAR_RANDOM_STRING_HERE
-JWT_EXPIRES_IN=7d
+JWT_EXPIRE=7d
 
 # ── Redis ────────────────────────────────────────────────────
-REDIS_URL=redis://127.0.0.1:6379
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
 
 # ── Admin ───────────────────────────────────────────────────
-# Secret needed to create admin accounts
 ADMIN_SECRET=CHOOSE_A_STRONG_ADMIN_SECRET
 
 # ── CORS ────────────────────────────────────────────────────
-# Your admin panel domain (or IP for testing)
-ALLOWED_ORIGINS=http://37.60.240.199,https://admin.yourdomain.com
+ALLOWED_ORIGINS=http://37.60.240.199:3001
+
+# ── Business rules ──────────────────────────────────────────
+COMMISSION_RATE=0.15
+BOOKING_FEE=0.10
+APP_NAME=Ombia Express
 
 # ── Uploads ─────────────────────────────────────────────────
 UPLOAD_PATH=/var/www/ombiaexpress/uploads
-
-# ── Mobile Money (fill when you have keys) ──────────────────
-AIRTEL_API_KEY=
-AIRTEL_API_SECRET=
-MOOV_API_KEY=
 ```
 
 Save with `Ctrl+O` then `Enter`, exit with `Ctrl+X`.
@@ -239,116 +238,44 @@ pm2 logs ombia-express-api --lines 30
 
 ---
 
-## Step 11 — Configure Nginx
+## Step 11 — Serve Admin Panel with PM2
 
-### 11.1 — Create the site config
-
-```bash
-nano /etc/nginx/sites-available/ombiaexpress
-```
-
-#### If you have a domain name, paste this:
-
-```nginx
-# API
-server {
-    listen 80;
-    server_name api.yourdomain.com;
-
-    location /uploads/ {
-        alias /var/www/ombiaexpress/uploads/;
-        expires 1d;
-    }
-
-    location /socket.io/ {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-}
-
-# Admin panel
-server {
-    listen 80;
-    server_name admin.yourdomain.com;
-
-    root /var/www/ombiaexpress/admin/dist;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
-#### If you only have the IP (no domain yet), paste this:
-
-```nginx
-server {
-    listen 80;
-    server_name 37.60.240.199;
-
-    # Admin panel at /admin/
-    location /admin/ {
-        alias /var/www/ombiaexpress/admin/dist/;
-        try_files $uri $uri/ /admin/index.html;
-    }
-
-    # API at /api/
-    location /api/ {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    # Socket.io
-    location /socket.io/ {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-    }
-
-    # Uploaded files
-    location /uploads/ {
-        alias /var/www/ombiaexpress/uploads/;
-        expires 1d;
-    }
-}
-```
-
-### 11.2 — Enable the site
+> **Note:** If the server already has another app using port 80, do NOT create an Nginx config for the IP — it will conflict and be ignored. Use PM2 serve directly instead.
 
 ```bash
-# Enable the new site
-ln -s /etc/nginx/sites-available/ombiaexpress /etc/nginx/sites-enabled/
-
-# Test config (MUST show "test is successful")
-nginx -t
-
-# Reload Nginx
-systemctl reload nginx
+pm2 serve /var/www/ombiaexpress/admin/dist 3001 --name "ombia-admin" --spa
+pm2 save
 ```
+
+Then create the admin panel API config:
+
+```bash
+nano /var/www/ombiaexpress/admin/.env.production
+```
+
+Paste:
+
+```env
+VITE_API_URL=http://37.60.240.199:5001/api
+```
+
+Save `Ctrl+O` → `Ctrl+X`, then rebuild:
+
+```bash
+cd /var/www/ombiaexpress/admin
+npm run build
+```
+
+✅ Admin panel: `http://37.60.240.199:3001`
+✅ API: `http://37.60.240.199:5001/api`
 
 ---
 
 ## Step 12 — Open Firewall Ports
 
 ```bash
-ufw allow OpenSSH
-ufw allow 'Nginx Full'   # opens ports 80 and 443
-ufw --force enable
+ufw allow 5001/tcp   # API
+ufw allow 3001/tcp   # Admin panel
 ufw status
 ```
 
@@ -376,13 +303,13 @@ certbot renew --dry-run
 On your PC, update `mobile/.env`:
 
 ```env
-# With domain:
+# With IP only (current):
+EXPO_PUBLIC_API_URL=http://37.60.240.199:5001/api
+EXPO_PUBLIC_SOCKET_URL=http://37.60.240.199:5001
+
+# With domain (later):
 EXPO_PUBLIC_API_URL=https://api.yourdomain.com/api
 EXPO_PUBLIC_SOCKET_URL=https://api.yourdomain.com
-
-# With IP only:
-EXPO_PUBLIC_API_URL=http://37.60.240.199/api
-EXPO_PUBLIC_SOCKET_URL=http://37.60.240.199
 ```
 
 Then rebuild your Expo app:
@@ -397,22 +324,13 @@ eas build --platform android   # with EAS
 
 ## Step 15 — Create the First Admin Account
 
-Once the server is running, create your admin user:
-
 ```bash
-curl -X POST http://37.60.240.199/api/auth/register \
+curl -X POST http://37.60.240.199:5001/api/admin/create \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "Admin",
-    "email": "admin@ombiaexpress.com",
-    "password": "YourStrongPassword123!",
-    "phone": "+24177000000",
-    "role": "admin",
-    "admin_secret": "THE_ADMIN_SECRET_FROM_YOUR_ENV"
-  }'
+  -d '{"name":"Admin","email":"admin@ombiaexpress.com","phone":"24177000000","password":"YourStrongPassword123!","admin_secret":"YOUR_ADMIN_SECRET"}'
 ```
 
-Then log in at `http://37.60.240.199/admin/` (or your domain).
+Then log in at `http://37.60.240.199:3001`.
 
 ---
 
