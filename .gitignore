@@ -42,6 +42,9 @@ nul
 *.png
 *.jpg
 *.jpeg
+
+# Exception — logo used in README
+!docs/logo.png
 Screenshot_*
 OmbiaExpress-Logo-Vecteur*
 Ombia-Express*
