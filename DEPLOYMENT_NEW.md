@@ -298,19 +298,95 @@ certbot renew --dry-run
 
 ---
 
-## Step 14 — Update Mobile App API URL
+## Step 14 — Deploy the Mobile App
 
-On your PC, update `mobile/.env`:
+### 14.1 — Update API URL (on your PC)
+
+`mobile/.env` must point to the live server:
 
 ```env
-# With IP only (current):
 EXPO_PUBLIC_API_URL=http://37.60.240.199:5001/api
 EXPO_PUBLIC_SOCKET_URL=http://37.60.240.199:5001
+```
 
-# With domain (later):
+### 14.2 — Test with Expo Go first
+
+Before building, validate everything works against the live server:
+
+```bash
+cd mobile
+npx expo start --clear
+```
+
+Scan the QR code with the **Expo Go** app on your phone.
+Test: login, register, ride request, wallet — make sure all screens work.
+
+### 14.3 — Build Android APK (for sharing / testing)
+
+Install EAS CLI and login:
+
+```bash
+npm install -g eas-cli
+eas login
+```
+
+Initialize EAS (run once — gives you a real project ID):
+
+```bash
+cd mobile
+eas init
+```
+
+Copy the generated `projectId` into `mobile/app.json`:
+
+```json
+"extra": {
+  "eas": {
+    "projectId": "PASTE_YOUR_PROJECT_ID_HERE"
+  }
+}
+```
+
+Build a shareable APK (no Play Store needed):
+
+```bash
+eas build --platform android --profile preview
+```
+
+When done, EAS gives you a download link for the `.apk`.
+Install directly on any Android phone.
+
+### 14.4 — Build for Production (Play Store)
+
+```bash
+eas build --platform android --profile production
+```
+
+Then submit:
+
+```bash
+eas submit --platform android
+```
+
+### 14.5 — Build for iOS (App Store)
+
+Requires an Apple Developer account ($99/year):
+
+```bash
+eas build --platform ios
+eas submit --platform ios
+```
+
+### 14.6 — Update URL when domain is ready
+
+Once you have a domain, update `mobile/.env`:
+
+```env
 EXPO_PUBLIC_API_URL=https://api.yourdomain.com/api
 EXPO_PUBLIC_SOCKET_URL=https://api.yourdomain.com
 ```
+
+Then rebuild: `eas build --platform android --profile production`
 
 Then rebuild your Expo app:
 ```bash
@@ -405,8 +481,8 @@ cd ../admin && npm install && npm run build
 | `404 on admin panel` | Check `admin/dist/` exists → run `npm run build` again |
 | `ECONNREFUSED` on DB | PostgreSQL not running → `systemctl start postgresql` |
 | Mobile still says "serveur inaccessible" | Update `mobile/.env` with the server IP/domain, rebuild app |
-| Port 5000 already used | Change `PORT` in `.env` to `5001` and update Nginx config |
-| Nginx `test is successful` but site not loading | Check `ufw status` — port 80 must be open |
+| Port already used (`EADDRINUSE`) | Change `PORT` in `.env` + `pm2.config.js`, then `pm2 delete ombia-express-api` + `pm2 start pm2.config.js --env production --update-env` |
+| Admin panel calls `localhost:5000` | Create `admin/.env.production` with `VITE_API_URL=http://IP:PORT/api` then `npm run build` |
 
 ---
 
