@@ -11,3 +11,7 @@ npm-debug.*
 web-build/
 dist/
 .DS_Store
+
+# Expo Native dirs
+android/
+ios/

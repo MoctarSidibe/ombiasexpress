@@ -63,7 +63,8 @@
           "sounds": []
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-font"
     ],
     "notification": {
       "icon": "./assets/icon.png",
