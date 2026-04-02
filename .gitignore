@@ -45,6 +45,11 @@ nul
 
 # Exception — logos used in README and admin panel
 !docs/logo.png
+
+# Exception — mobile app icons/assets required for EAS build
+!mobile/assets/*.png
+!mobile/assets/*.jpg
+!mobile/assets/*.jpeg
 !admin/public/logo.png
 Screenshot_*
 OmbiaExpress-Logo-Vecteur*
