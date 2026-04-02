@@ -59,6 +59,7 @@ airtel_money*
 card_method_payment*
 moov_money*
 delivery*.json
+!mobile/assets/delivery.json
 
 # Python
 __pycache__/
