@@ -56,6 +56,7 @@ const MiniPulseRing = ({ delay, color, thickness = 1.5 }) => {
 // ── Screen ─────────────────────────────────────────────────────────────────────
 const RegisterScreen = ({ navigation }) => {
     const [name,            setName]            = useState('');
+    const [email,           setEmail]           = useState('');
     const [country,         setCountry]         = useState(COUNTRIES[0]); // Gabon default
     const [localPhone,      setLocalPhone]      = useState('');
     const [password,        setPassword]        = useState('');
@@ -90,6 +91,7 @@ const RegisterScreen = ({ navigation }) => {
         setLoading(true);
         const result = await register({
             name: name.trim(),
+            email: email.trim().toLowerCase() || undefined,
             phone: buildFullPhone(),
             password,
         });
@@ -193,6 +195,21 @@ const RegisterScreen = ({ navigation }) => {
                                 value={name}
                                 onChangeText={setName}
                                 autoCapitalize="words"
+                            />
+                        </View>
+
+                        {/* Email (optional) */}
+                        <View style={styles.inputContainer}>
+                            <Ionicons name="mail-outline" size={20} color="#4DB6E8" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Email (optionnel)"
+                                placeholderTextColor="#bbb"
+                                value={email}
+                                onChangeText={setEmail}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                autoCorrect={false}
                             />
                         </View>
 

@@ -31,7 +31,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/ombia-icon.png",
+        "foregroundImage": "./assets/adaptive-icon-fg.png",
         "backgroundColor": "#1C2E4A"
       },
       "package": "com.ombiaexpress.app",
