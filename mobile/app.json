@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ombia Express",
     "slug": "ombia-express",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -31,8 +31,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/ombia-icon.png",
+        "backgroundColor": "#1C2E4A"
       },
       "package": "com.ombiaexpress.app",
       "permissions": [

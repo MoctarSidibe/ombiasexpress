@@ -64,9 +64,9 @@ export const AuthProvider = ({ children }) => {
         } catch (_) {}
     };
 
-    const login = async (phone, password) => {
+    const login = async (credentials) => {
         try {
-            const response = await authAPI.login({ phone, password });
+            const response = await authAPI.login(credentials);
 
             // MFA required — return flag so screen can handle the OTP step
             if (response.data.mfa_required) {

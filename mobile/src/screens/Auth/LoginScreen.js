@@ -56,8 +56,11 @@ const PulseRing = ({ delay, color, thickness = 2 }) => {
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 const LoginScreen = ({ navigation }) => {
+    // Login mode: 'phone' or 'email'
+    const [loginMode,       setLoginMode]      = useState('phone');
     const [country,         setCountry]        = useState(COUNTRIES[0]); // Gabon default
     const [localPhone,      setLocalPhone]     = useState('');
+    const [email,           setEmail]          = useState('');
     const [password,        setPassword]       = useState('');
     const [loading,         setLoading]        = useState(false);
     const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -65,22 +68,45 @@ const LoginScreen = ({ navigation }) => {
     const [searchQuery,     setSearchQuery]    = useState('');
     const { login } = useAuth();
 
+    // Animated indicator for tab
+    const tabAnim = useRef(new Animated.Value(0)).current;
+
     useEffect(() => {
         const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
         const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
         return () => { show.remove(); hide.remove(); };
     }, []);
 
+    const switchMode = (mode) => {
+        setLoginMode(mode);
+        Animated.spring(tabAnim, {
+            toValue: mode === 'phone' ? 0 : 1,
+            useNativeDriver: false,
+            tension: 80,
+            friction: 12,
+        }).start();
+    };
+
     // Strip leading zeros and combine: 077724499 → 24177724499
     const buildFullPhone = () => country.dial + localPhone.replace(/^0+/, '');
 
     const handleLogin = async () => {
-        if (!localPhone || !password) {
-            Alert.alert('Erreur', 'Veuillez remplir tous les champs');
-            return;
+        if (loginMode === 'phone') {
+            if (!localPhone || !password) {
+                Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+                return;
+            }
+        } else {
+            if (!email || !password) {
+                Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+                return;
+            }
         }
         setLoading(true);
-        const result = await login(buildFullPhone(), password);
+        const credentials = loginMode === 'phone'
+            ? { phone: buildFullPhone(), password }
+            : { email: email.trim().toLowerCase(), password };
+        const result = await login(credentials);
         setLoading(false);
         if (!result.success) Alert.alert('Échec de connexion', result.error);
     };
@@ -89,6 +115,11 @@ const LoginScreen = ({ navigation }) => {
         c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.dial.includes(searchQuery)
     );
+
+    const tabIndicatorLeft = tabAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['2%', '50%'],
+    });
 
     return (
         <SafeAreaView style={styles.container}>
@@ -179,24 +210,75 @@ const LoginScreen = ({ navigation }) => {
                     {/* ── Form ── */}
                     <View style={styles.form}>
 
-                        {/* Phone input with country picker */}
-                        <View style={[styles.inputContainer, styles.inputBlue]}>
-                            <TouchableOpacity style={styles.dialPicker} onPress={() => setPickerOpen(true)}>
-                                <Text style={styles.dialFlag}>{country.flag}</Text>
-                                <Text style={styles.dialCode}>+{country.dial}</Text>
-                                <Ionicons name="chevron-down" size={12} color="#9AA3B0" />
+                        {/* ── Login mode toggle ── */}
+                        <View style={styles.tabContainer}>
+                            <Animated.View style={[styles.tabIndicator, { left: tabIndicatorLeft }]} />
+                            <TouchableOpacity
+                                style={styles.tabButton}
+                                onPress={() => switchMode('phone')}
+                                activeOpacity={0.8}
+                            >
+                                <Ionicons
+                                    name="call-outline"
+                                    size={15}
+                                    color={loginMode === 'phone' ? '#FFA726' : '#9AA3B0'}
+                                />
+                                <Text style={[styles.tabLabel, loginMode === 'phone' && styles.tabLabelActive]}>
+                                    Téléphone
+                                </Text>
                             </TouchableOpacity>
-                            <View style={styles.dialDivider} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder={country.placeholder}
-                                placeholderTextColor="#bbb"
-                                value={localPhone}
-                                onChangeText={setLocalPhone}
-                                keyboardType="phone-pad"
-                                returnKeyType="next"
-                            />
+                            <TouchableOpacity
+                                style={styles.tabButton}
+                                onPress={() => switchMode('email')}
+                                activeOpacity={0.8}
+                            >
+                                <Ionicons
+                                    name="mail-outline"
+                                    size={15}
+                                    color={loginMode === 'email' ? '#FFA726' : '#9AA3B0'}
+                                />
+                                <Text style={[styles.tabLabel, loginMode === 'email' && styles.tabLabelActive]}>
+                                    Email
+                                </Text>
+                            </TouchableOpacity>
                         </View>
+
+                        {/* ── Phone input ── */}
+                        {loginMode === 'phone' ? (
+                            <View style={[styles.inputContainer, styles.inputBlue]}>
+                                <TouchableOpacity style={styles.dialPicker} onPress={() => setPickerOpen(true)}>
+                                    <Text style={styles.dialFlag}>{country.flag}</Text>
+                                    <Text style={styles.dialCode}>+{country.dial}</Text>
+                                    <Ionicons name="chevron-down" size={12} color="#9AA3B0" />
+                                </TouchableOpacity>
+                                <View style={styles.dialDivider} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder={country.placeholder || 'Numéro de téléphone'}
+                                    placeholderTextColor="#bbb"
+                                    value={localPhone}
+                                    onChangeText={setLocalPhone}
+                                    keyboardType="phone-pad"
+                                    returnKeyType="next"
+                                />
+                            </View>
+                        ) : (
+                            /* ── Email input ── */
+                            <View style={[styles.inputContainer, styles.inputBlue]}>
+                                <Ionicons name="mail-outline" size={20} color="#4DB6E8" style={styles.inputIcon} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Adresse email"
+                                    placeholderTextColor="#bbb"
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                    returnKeyType="next"
+                                />
+                            </View>
+                        )}
 
                         <View style={[styles.inputContainer, styles.inputBlue]}>
                             <Ionicons name="lock-closed-outline" size={20} color="#4DB6E8" style={styles.inputIcon} />
@@ -288,6 +370,48 @@ const styles = StyleSheet.create({
         width: '100%',
         paddingHorizontal: 28,
     },
+
+    // ── Login mode tabs ──
+    tabContainer: {
+        flexDirection: 'row',
+        backgroundColor: '#F3F4F6',
+        borderRadius: 14,
+        padding: 4,
+        marginBottom: 18,
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    tabIndicator: {
+        position: 'absolute',
+        top: 4,
+        width: '48%',
+        bottom: 4,
+        backgroundColor: '#fff',
+        borderRadius: 11,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    tabButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        paddingVertical: 10,
+        zIndex: 1,
+    },
+    tabLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#9AA3B0',
+    },
+    tabLabelActive: {
+        color: '#1C2E4A',
+    },
+
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
