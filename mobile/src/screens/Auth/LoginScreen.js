@@ -27,7 +27,7 @@ const { width, height } = Dimensions.get('window');
 // Keep rings proportional to screen
 const RING_BASE   = width * 0.26;
 const LOGO_WIDTH  = width * 0.60;
-const LOTTIE_SIZE = width * 0.52;
+const LOTTIE_SIZE = width * 0.70;
 
 // ── Pulse ring ────────────────────────────────────────────────────────────────
 const PulseRing = ({ delay, color, thickness = 2 }) => {
@@ -304,9 +304,9 @@ const styles = StyleSheet.create({
         // No ScrollView — just two flex regions that fill the screen
     },
 
-    // ══ TOP — takes ~44% of screen ══
+    // ══ TOP — takes ~48% of screen ══
     top: {
-        flex: 44,
+        flex: 48,
         alignItems: 'center',
         justifyContent: 'center',
         paddingTop: 4,
@@ -335,11 +335,12 @@ const styles = StyleSheet.create({
     lottie: {
         width: LOTTIE_SIZE,
         height: LOTTIE_SIZE * 0.92,
+        marginTop: -4,
     },
 
-    // ══ BOTTOM — takes ~56% of screen ══
+    // ══ BOTTOM — takes ~52% of screen ══
     form: {
-        flex: 56,
+        flex: 52,
         paddingHorizontal: 26,
         paddingTop: 4,
         justifyContent: 'flex-start',

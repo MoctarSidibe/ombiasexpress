@@ -5,7 +5,6 @@ import {
     TextInput,
     TouchableOpacity,
     StyleSheet,
-    ScrollView,
     KeyboardAvoidingView,
     Platform,
     Alert,
@@ -15,16 +14,16 @@ import {
     Dimensions,
     Modal,
     FlatList,
+    StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { COUNTRIES } from '../../constants/countries';
 
-const { width: screenWidth } = Dimensions.get('window');
-const MINI_W    = screenWidth * 0.48;
-const MINI_H    = MINI_W * 0.48;
-const MINI_RING = MINI_W * 0.44;
+const { width } = Dimensions.get('window');
+
+const MINI_RING = width * 0.13;
 
 // ── Mini pulse ring ────────────────────────────────────────────────────────────
 const MiniPulseRing = ({ delay, color, thickness = 1.5 }) => {
@@ -57,7 +56,7 @@ const MiniPulseRing = ({ delay, color, thickness = 1.5 }) => {
 const RegisterScreen = ({ navigation }) => {
     const [name,            setName]            = useState('');
     const [email,           setEmail]           = useState('');
-    const [country,         setCountry]         = useState(COUNTRIES[0]); // Gabon default
+    const [country,         setCountry]         = useState(COUNTRIES[0]);
     const [localPhone,      setLocalPhone]      = useState('');
     const [password,        setPassword]        = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -65,9 +64,10 @@ const RegisterScreen = ({ navigation }) => {
     const [accepted,        setAccepted]        = useState(false);
     const [pickerOpen,      setPickerOpen]      = useState(false);
     const [searchQuery,     setSearchQuery]     = useState('');
+    const [showPass,        setShowPass]        = useState(false);
+    const [showConfirm,     setShowConfirm]     = useState(false);
     const { register } = useAuth();
 
-    // Strip leading zeros: 077724499 → 24177724499
     const buildFullPhone = () => country.dial + localPhone.replace(/^0+/, '');
 
     const handleRegister = async () => {
@@ -84,10 +84,9 @@ const RegisterScreen = ({ navigation }) => {
             return;
         }
         if (!accepted) {
-            Alert.alert('Conditions requises', "Veuillez accepter les Conditions d'utilisation et la Politique de confidentialité pour continuer.");
+            Alert.alert('Conditions requises', "Veuillez accepter les Conditions d'utilisation pour continuer.");
             return;
         }
-
         setLoading(true);
         const result = await register({
             name: name.trim(),
@@ -96,7 +95,6 @@ const RegisterScreen = ({ navigation }) => {
             password,
         });
         setLoading(false);
-
         if (!result.success) {
             Alert.alert("Échec de l'inscription", result.error);
         }
@@ -108,7 +106,8 @@ const RegisterScreen = ({ navigation }) => {
     );
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.safe}>
+            <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
             {/* ── Country picker modal ── */}
             <Modal visible={pickerOpen} animationType="slide" transparent>
@@ -142,9 +141,7 @@ const RegisterScreen = ({ navigation }) => {
                                     <Text style={styles.countryFlag}>{item.flag}</Text>
                                     <Text style={styles.countryName}>{item.name}</Text>
                                     <Text style={styles.countryDial}>+{item.dial}</Text>
-                                    {item.code === country.code && (
-                                        <Ionicons name="checkmark" size={16} color="#FFA726" />
-                                    )}
+                                    {item.code === country.code && <Ionicons name="checkmark" size={16} color="#FFA726" />}
                                 </TouchableOpacity>
                             )}
                             keyboardShouldPersistTaps="handled"
@@ -154,392 +151,326 @@ const RegisterScreen = ({ navigation }) => {
             </Modal>
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.kav}
             >
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                <View style={styles.content}>
+                <View style={styles.screen}>
 
-                    {/* Header */}
-                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                        <Ionicons name="arrow-back" size={24} color="#1C2E4A" />
-                    </TouchableOpacity>
-                    <Text style={styles.title}>Créer un compte</Text>
-                    <View style={styles.subtitleRow}>
-                        <Text style={styles.subtitle}>Rejoignez Ombia Express</Text>
-                        <View style={styles.miniLogoSection}>
-                            <View style={styles.miniRingsWrap}>
-                                <MiniPulseRing delay={0}   color="#FFA726" thickness={1.5} />
-                                <MiniPulseRing delay={700} color="#4DB6E8" thickness={1.5} />
+                    {/* ══ TOP HEADER ══ */}
+                    <View style={styles.header}>
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                            <Ionicons name="arrow-back" size={22} color="#1C2E4A" />
+                        </TouchableOpacity>
+
+                        <View style={styles.headerCenter}>
+                            <Text style={styles.title}>Créer un compte</Text>
+                            <View style={styles.subtitleRow}>
+                                <Text style={styles.subtitle}>Rejoignez{' '}
+                                    <Text style={styles.subtitleBrand}>Ombia Express</Text>
+                                </Text>
+                                <View style={styles.miniLogoWrap}>
+                                    <MiniPulseRing delay={0}   color="#FFA726" />
+                                    <MiniPulseRing delay={700} color="#4DB6E8" />
+                                    <Image
+                                        source={require('../../../assets/logo.png')}
+                                        style={styles.miniLogo}
+                                        resizeMode="contain"
+                                    />
+                                </View>
                             </View>
-                            <Image
-                                source={require('../../../assets/logo.png')}
-                                style={styles.miniLogo}
-                                resizeMode="contain"
-                            />
                         </View>
                     </View>
 
-                    {/* Form */}
-                    <Text style={styles.sectionLabel}>Informations personnelles :</Text>
+                    {/* ══ FORM ══ */}
                     <View style={styles.form}>
 
                         {/* Name */}
-                        <View style={styles.inputContainer}>
-                            <Ionicons name="person-outline" size={20} color="#bbb" style={styles.inputIcon} />
+                        <View style={styles.inputRow}>
+                            <Ionicons name="person-outline" size={18} color="#9AA3B0" style={styles.icon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Nom complet"
-                                placeholderTextColor="#bbb"
+                                placeholder="Nom complet *"
+                                placeholderTextColor="#C4C9D4"
                                 value={name}
                                 onChangeText={setName}
                                 autoCapitalize="words"
+                                returnKeyType="next"
                             />
                         </View>
 
-                        {/* Email (optional) */}
-                        <View style={styles.inputContainer}>
-                            <Ionicons name="mail-outline" size={20} color="#4DB6E8" style={styles.inputIcon} />
+                        {/* Email optional */}
+                        <View style={styles.inputRow}>
+                            <Ionicons name="mail-outline" size={18} color="#4DB6E8" style={styles.icon} />
                             <TextInput
                                 style={styles.input}
                                 placeholder="Email (optionnel)"
-                                placeholderTextColor="#bbb"
+                                placeholderTextColor="#C4C9D4"
                                 value={email}
                                 onChangeText={setEmail}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 autoCorrect={false}
+                                returnKeyType="next"
                             />
                         </View>
 
-                        {/* Phone with country picker */}
-                        <View style={[styles.inputContainer, styles.inputBlue]}>
+                        {/* Phone */}
+                        <View style={[styles.inputRow, styles.inputBlue]}>
                             <TouchableOpacity style={styles.dialPicker} onPress={() => setPickerOpen(true)}>
                                 <Text style={styles.dialFlag}>{country.flag}</Text>
                                 <Text style={styles.dialCode}>+{country.dial}</Text>
-                                <Ionicons name="chevron-down" size={12} color="#9AA3B0" />
+                                <Ionicons name="chevron-down" size={11} color="#9AA3B0" />
                             </TouchableOpacity>
                             <View style={styles.dialDivider} />
                             <TextInput
                                 style={styles.input}
-                                placeholder={country.placeholder}
-                                placeholderTextColor="#bbb"
+                                placeholder={country.placeholder || 'Numéro *'}
+                                placeholderTextColor="#C4C9D4"
                                 value={localPhone}
                                 onChangeText={setLocalPhone}
                                 keyboardType="phone-pad"
+                                returnKeyType="next"
                             />
                         </View>
 
-                        {/* Preview of full number */}
-                        {localPhone.length > 0 && (
-                            <Text style={styles.phonePreview}>
-                                Numéro complet : +{buildFullPhone()}
-                            </Text>
-                        )}
-
-                        {/* Password */}
-                        <View style={styles.inputContainer}>
-                            <Ionicons name="lock-closed-outline" size={20} color="#bbb" style={styles.inputIcon} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Mot de passe"
-                                placeholderTextColor="#bbb"
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry
-                                autoCapitalize="none"
-                            />
+                        {/* Password row */}
+                        <View style={styles.passwordRow}>
+                            <View style={[styles.inputRow, styles.halfInput]}>
+                                <Ionicons name="lock-closed-outline" size={16} color="#9AA3B0" style={styles.icon} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Mot de passe *"
+                                    placeholderTextColor="#C4C9D4"
+                                    value={password}
+                                    onChangeText={setPassword}
+                                    secureTextEntry={!showPass}
+                                    autoCapitalize="none"
+                                    returnKeyType="next"
+                                />
+                                <TouchableOpacity onPress={() => setShowPass(v => !v)}>
+                                    <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={16} color="#C4C9D4" />
+                                </TouchableOpacity>
+                            </View>
+                            <View style={[styles.inputRow, styles.halfInput]}>
+                                <Ionicons name="shield-checkmark-outline" size={16} color="#4DB6E8" style={styles.icon} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Confirmer *"
+                                    placeholderTextColor="#C4C9D4"
+                                    value={confirmPassword}
+                                    onChangeText={setConfirmPassword}
+                                    secureTextEntry={!showConfirm}
+                                    autoCapitalize="none"
+                                    returnKeyType="done"
+                                />
+                                <TouchableOpacity onPress={() => setShowConfirm(v => !v)}>
+                                    <Ionicons name={showConfirm ? 'eye-off-outline' : 'eye-outline'} size={16} color="#C4C9D4" />
+                                </TouchableOpacity>
+                            </View>
                         </View>
 
-                        {/* Confirm password */}
-                        <View style={[styles.inputContainer, styles.inputBlue]}>
-                            <Ionicons name="shield-checkmark-outline" size={20} color="#4DB6E8" style={styles.inputIcon} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Confirmer le mot de passe"
-                                placeholderTextColor="#bbb"
-                                value={confirmPassword}
-                                onChangeText={setConfirmPassword}
-                                secureTextEntry
-                                autoCapitalize="none"
-                            />
-                        </View>
-
-                        {/* Legal consent */}
+                        {/* Consent */}
                         <TouchableOpacity
                             style={styles.consentRow}
                             onPress={() => setAccepted(v => !v)}
                             activeOpacity={0.7}
                         >
                             <View style={[styles.checkbox, accepted && styles.checkboxChecked]}>
-                                {accepted && <Ionicons name="checkmark" size={13} color="#fff" />}
+                                {accepted && <Ionicons name="checkmark" size={12} color="#fff" />}
                             </View>
                             <Text style={styles.consentText}>
-                                {'J\'ai lu et j\'accepte les '}
-                                <Text
-                                    style={styles.consentLink}
-                                    onPress={() => navigation.navigate('Terms')}
-                                >
+                                {'J\'accepte les '}
+                                <Text style={styles.consentLink} onPress={() => navigation.navigate('Terms')}>
                                     Conditions d'utilisation
                                 </Text>
                                 {' et la '}
-                                <Text
-                                    style={styles.consentLink}
-                                    onPress={() => navigation.navigate('PrivacyPolicy')}
-                                >
+                                <Text style={styles.consentLink} onPress={() => navigation.navigate('PrivacyPolicy')}>
                                     Politique de confidentialité
                                 </Text>
-                                {' d\'Ombia Express.'}
                             </Text>
                         </TouchableOpacity>
 
+                        {/* Register button */}
                         <TouchableOpacity
-                            style={[styles.button, (!accepted || loading) && styles.buttonDisabled]}
+                            style={[styles.btn, (!accepted || loading) && styles.btnDisabled]}
                             onPress={handleRegister}
                             disabled={loading || !accepted}
+                            activeOpacity={0.85}
                         >
-                            {loading ? (
-                                <ActivityIndicator color="#fff" />
-                            ) : (
-                                <Text style={styles.buttonText}>Créer mon compte</Text>
-                            )}
+                            {loading
+                                ? <ActivityIndicator color="#fff" />
+                                : <Text style={styles.btnText}>Créer mon compte</Text>
+                            }
                         </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.linkButton}
-                            onPress={() => navigation.navigate('Login')}
-                        >
+                        {/* Login link */}
+                        <TouchableOpacity style={styles.linkBtn} onPress={() => navigation.navigate('Login')}>
                             <Text style={styles.linkText}>
-                                {'Déjà un compte ? '}
-                                <Text style={styles.linkTextBold}>Se connecter</Text>
+                                Déjà un compte ?{'  '}
+                                <Text style={styles.linkBold}>Se connecter →</Text>
                             </Text>
                         </TouchableOpacity>
                     </View>
 
                 </View>
-            </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#fff' },
-    content:   { padding: 22, paddingTop: 12 },
-    backButton:{ marginBottom: 18 },
+    safe: { flex: 1, backgroundColor: '#fff' },
+    kav:  { flex: 1 },
+    screen: { flex: 1 },
 
+    // ── Header ──
+    header: {
+        paddingHorizontal: 20,
+        paddingTop: 8,
+        paddingBottom: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F2F7',
+    },
+    backBtn: { marginBottom: 8 },
+    headerCenter: {},
     title: {
-        fontSize: 30,
-        fontWeight: '800',
+        fontSize: 26,
+        fontWeight: '900',
         color: '#1C2E4A',
         marginBottom: 4,
     },
     subtitleRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 28,
+        justifyContent: 'space-between',
     },
     subtitle: {
-        fontSize: 15,
-        color: '#aaa',
+        fontSize: 17,
+        color: '#6B7280',
+        fontWeight: '500',
     },
-    miniLogoSection: {
+    subtitleBrand: {
+        fontSize: 17,
+        fontWeight: '800',
+        color: '#FFA726',
+    },
+    miniLogoWrap: {
+        width: width * 0.22,
+        height: width * 0.10,
         alignItems: 'center',
         justifyContent: 'center',
-        width: MINI_W,
-        height: MINI_H,
-        marginLeft: 6,
-    },
-    miniRingsWrap: {
-        position: 'absolute',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: MINI_RING,
-        height: MINI_RING,
     },
     miniLogo: {
-        width: MINI_W,
-        height: MINI_H,
+        width: width * 0.22,
+        height: width * 0.10,
     },
 
-    sectionLabel: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#1C2E4A',
-        letterSpacing: 0.5,
-        textTransform: 'uppercase',
-        marginBottom: 12,
-        marginTop: 4,
-        opacity: 0.6,
-        borderLeftWidth: 3,
-        borderLeftColor: '#4DB6E8',
-        paddingLeft: 8,
+    // ── Form ──
+    form: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 12,
+        justifyContent: 'flex-start',
     },
-
-    form: { width: '100%' },
-    inputContainer: {
+    inputRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: '#F8F9FC',
+        borderRadius: 12,
         borderWidth: 1.5,
-        borderColor: '#efefef',
-        borderRadius: 14,
-        marginBottom: 12,
-        paddingHorizontal: 16,
-        backgroundColor: '#fafafa',
+        borderColor: '#EAECF2',
+        paddingHorizontal: 12,
+        marginBottom: 10,
+        height: 48,
     },
-    inputBlue: {
-        borderColor: 'rgba(77,182,232,0.25)',
-    },
-    inputIcon: { marginRight: 12 },
+    inputBlue: { borderColor: 'rgba(77,182,232,0.3)' },
+    icon: { marginRight: 8 },
     input: {
         flex: 1,
-        height: 50,
-        fontSize: 16,
+        fontSize: 14,
         color: '#1a1a1a',
+        height: 48,
     },
-
-    // Dial picker
     dialPicker: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        paddingRight: 6,
+        paddingRight: 4,
     },
-    dialFlag: { fontSize: 20 },
-    dialCode:  { fontSize: 14, fontWeight: '700', color: '#1C2E4A' },
+    dialFlag: { fontSize: 17 },
+    dialCode:  { fontSize: 13, fontWeight: '700', color: '#1C2E4A' },
     dialDivider: {
-        width: 1,
-        height: 24,
+        width: 1, height: 20,
         backgroundColor: 'rgba(77,182,232,0.3)',
-        marginHorizontal: 10,
+        marginHorizontal: 8,
     },
 
-    phonePreview: {
-        fontSize: 11,
-        color: '#4DB6E8',
-        marginTop: -6,
+    // Side-by-side password fields
+    passwordRow: {
+        flexDirection: 'row',
+        gap: 8,
+        marginBottom: 0,
+    },
+    halfInput: {
+        flex: 1,
         marginBottom: 10,
-        marginLeft: 4,
-        fontWeight: '600',
     },
 
-    button: {
-        backgroundColor: '#FFA726',
-        paddingVertical: 16,
-        borderRadius: 14,
-        alignItems: 'center',
-        marginTop: 8,
-        shadowColor: '#FFA726',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.35,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    buttonDisabled: { opacity: 0.6 },
-    buttonText: {
-        color: '#fff',
-        fontSize: 17,
-        fontWeight: '700',
-        letterSpacing: 0.4,
-    },
-    linkButton: {
-        marginTop: 20,
-        marginBottom: 32,
-        alignItems: 'center',
-    },
-    linkText:     { color: '#aaa', fontSize: 14 },
-    linkTextBold: { color: '#4DB6E8', fontWeight: '700' },
-
-    // Legal consent
+    // ── Consent ──
     consentRow: {
-        flexDirection:  'row',
-        alignItems:     'flex-start',
-        gap:            10,
-        marginTop:      16,
-        marginBottom:   10,
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: 10,
         backgroundColor: '#F8FAFC',
-        borderRadius:   12,
-        borderWidth:    1,
-        borderColor:    '#E5E7EB',
-        padding:        12,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        padding: 10,
+        marginBottom: 12,
     },
     checkbox: {
-        width:          20,
-        height:         20,
-        borderRadius:   6,
-        borderWidth:    2,
-        borderColor:    '#D1D5DB',
+        width: 18, height: 18,
+        borderRadius: 5,
+        borderWidth: 2,
+        borderColor: '#D1D5DB',
         backgroundColor: '#fff',
-        alignItems:     'center',
+        alignItems: 'center',
         justifyContent: 'center',
-        marginTop:      1,
-        flexShrink:     0,
+        marginTop: 1, flexShrink: 0,
     },
-    checkboxChecked: {
-        backgroundColor: '#FFA726',
-        borderColor:     '#FFA726',
-    },
-    consentText: {
-        flex:       1,
-        fontSize:   12,
-        color:      '#6B7280',
-        lineHeight: 18,
-    },
-    consentLink: {
-        color:      '#FFA726',
-        fontWeight: '700',
-        textDecorationLine: 'underline',
-    },
+    checkboxChecked: { backgroundColor: '#FFA726', borderColor: '#FFA726' },
+    consentText: { flex: 1, fontSize: 11, color: '#6B7280', lineHeight: 16 },
+    consentLink: { color: '#FFA726', fontWeight: '700', textDecorationLine: 'underline' },
 
-    // Modal
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        justifyContent: 'flex-end',
-    },
-    modalSheet: {
-        backgroundColor: '#fff',
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        maxHeight: '75%',
-        paddingBottom: 32,
-    },
-    modalHeader: {
-        flexDirection: 'row',
+    // ── Button ──
+    btn: {
+        backgroundColor: '#FFA726',
+        paddingVertical: 14,
+        borderRadius: 14,
         alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 20,
-        paddingBottom: 12,
-        borderBottomWidth: 0.5,
-        borderBottomColor: '#E5E7EB',
+        shadowColor: '#FFA726',
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.35,
+        shadowRadius: 10,
+        elevation: 5,
     },
+    btnDisabled: { opacity: 0.6 },
+    btnText: { color: '#fff', fontSize: 16, fontWeight: '800', letterSpacing: 0.3 },
+
+    linkBtn: { marginTop: 14, alignItems: 'center' },
+    linkText: { color: '#9AA3B0', fontSize: 13 },
+    linkBold: { color: '#4DB6E8', fontWeight: '700' },
+
+    // ── Modal ──
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+    modalSheet: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '75%', paddingBottom: 32 },
+    modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, paddingBottom: 12, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
     modalTitle: { fontSize: 17, fontWeight: '800', color: '#1C2E4A' },
-    searchRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F3F4F6',
-        borderRadius: 12,
-        margin: 16,
-        marginBottom: 8,
-        paddingHorizontal: 12,
-        gap: 8,
-    },
-    searchInput: {
-        flex: 1,
-        height: 40,
-        fontSize: 14,
-        color: '#1a1a1a',
-    },
-    countryRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        gap: 12,
-    },
+    searchRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 12, margin: 16, marginBottom: 8, paddingHorizontal: 12, gap: 8 },
+    searchInput: { flex: 1, height: 40, fontSize: 14, color: '#1a1a1a' },
+    countryRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 12, gap: 12 },
     countryRowActive: { backgroundColor: '#FFF8EE' },
-    countryFlag: { fontSize: 24 },
+    countryFlag: { fontSize: 22 },
     countryName: { flex: 1, fontSize: 14, color: '#1C2E4A', fontWeight: '500' },
     countryDial: { fontSize: 13, color: '#9AA3B0', fontWeight: '600' },
 });
