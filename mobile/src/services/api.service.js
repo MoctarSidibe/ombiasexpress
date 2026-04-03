@@ -2,12 +2,13 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';  // A02: token in encrypted storage
 
-const API_URL  = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.68:5000/api';
+// Production server URL — hardcoded as primary, env var as override
+const API_URL  = process.env.EXPO_PUBLIC_API_URL || 'http://37.60.240.199:5001/api';
 export const API_BASE = API_URL.replace('/api', '');
 
 const api = axios.create({
     baseURL:  API_URL,
-    timeout:  15000,
+    timeout:  20000,
     headers:  { 'Content-Type': 'application/json' },
 });
 

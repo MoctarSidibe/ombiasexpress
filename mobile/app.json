@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ombia Express",
     "slug": "ombia-express",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -35,6 +35,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.ombiaexpress.app",
+      "usesCleartextTraffic": true,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",

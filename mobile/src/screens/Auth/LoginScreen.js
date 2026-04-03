@@ -27,7 +27,7 @@ const { width, height } = Dimensions.get('window');
 // Keep rings proportional to screen
 const RING_BASE   = width * 0.26;
 const LOGO_WIDTH  = width * 0.60;
-const LOTTIE_SIZE = width * 0.70;
+const LOTTIE_SIZE = width * 0.78;
 
 // ── Pulse ring ────────────────────────────────────────────────────────────────
 const PulseRing = ({ delay, color, thickness = 2 }) => {
