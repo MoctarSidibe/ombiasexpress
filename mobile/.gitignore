@@ -12,6 +12,6 @@ web-build/
 dist/
 .DS_Store
 
-# Expo Native dirs
-android/
+# Expo Native dirs — tracked intentionally (bare workflow, avoids EAS prebuild issues)
+# android/
 ios/

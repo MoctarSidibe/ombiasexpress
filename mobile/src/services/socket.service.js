@@ -1,7 +1,7 @@
 import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || 'http://192.168.1.68:5000';
+const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || 'http://37.60.240.199:5001';
 
 class SocketService {
     constructor() {
