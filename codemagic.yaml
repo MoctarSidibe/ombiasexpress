@@ -1,0 +1,31 @@
+workflows:
+  android-release:
+    name: Android APK Build
+    max_build_duration: 60
+    environment:
+      node: 20.0.0
+      java: 17
+      vars:
+        EXPO_PUBLIC_API_URL: "http://37.60.240.199:5001/api"
+        EXPO_PUBLIC_SOCKET_URL: "http://37.60.240.199:5001"
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    scripts:
+      - name: Install dependencies
+        working_directory: mobile
+        script: npm install --legacy-peer-deps
+
+      - name: Make gradlew executable
+        working_directory: mobile/android
+        script: chmod +x gradlew
+
+      - name: Build Release APK
+        working_directory: mobile/android
+        script: ./gradlew assembleRelease --no-daemon
+
+    artifacts:
+      - mobile/android/app/build/outputs/apk/release/app-release.apk
