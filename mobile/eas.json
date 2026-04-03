@@ -5,11 +5,7 @@
   "build": {
     "preview": {
       "android": {
-        "buildType": "apk",
-        "image": "latest",
-        "cache": {
-          "disabled": true
-        }
+        "buildType": "apk"
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "http://37.60.240.199:5001/api",
