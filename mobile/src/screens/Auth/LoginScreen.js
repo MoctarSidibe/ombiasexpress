@@ -18,38 +18,45 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { COUNTRIES } from '../../constants/countries';
 
 const { width, height } = Dimensions.get('window');
 
-// ── Compact pulse ring ────────────────────────────────────────────────────────
-const PulseRing = ({ delay, color, size }) => {
+// Keep rings proportional to screen
+const RING_BASE   = width * 0.26;
+const LOGO_WIDTH  = width * 0.60;
+const LOTTIE_SIZE = width * 0.52;
+
+// ── Pulse ring ────────────────────────────────────────────────────────────────
+const PulseRing = ({ delay, color, thickness = 2 }) => {
     const anim = useRef(new Animated.Value(0)).current;
     useEffect(() => {
         const loop = Animated.loop(
             Animated.sequence([
                 Animated.delay(delay),
-                Animated.timing(anim, { toValue: 1, duration: 2200, useNativeDriver: true }),
-                Animated.timing(anim, { toValue: 0, duration: 0, useNativeDriver: true }),
+                Animated.timing(anim, { toValue: 1, duration: 2400, useNativeDriver: true }),
+                Animated.timing(anim, { toValue: 0, duration: 0,    useNativeDriver: true }),
             ])
         );
         loop.start();
         return () => loop.stop();
     }, []);
-    const scale   = anim.interpolate({ inputRange: [0, 1], outputRange: [0.5, 2.2] });
-    const opacity = anim.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0.6, 0.25, 0] });
+    const scale   = anim.interpolate({ inputRange: [0, 1], outputRange: [0.45, 2.5] });
+    const opacity = anim.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0.7, 0.35, 0] });
     return (
         <Animated.View style={{
             position: 'absolute',
-            width: size, height: size,
-            borderRadius: size / 2,
-            borderWidth: 1.5, borderColor: color,
+            width: RING_BASE, height: RING_BASE,
+            borderRadius: RING_BASE / 2,
+            borderWidth: thickness, borderColor: color,
             opacity, transform: [{ scale }],
         }} />
     );
 };
 
+// ── Screen ────────────────────────────────────────────────────────────────────
 const LoginScreen = ({ navigation }) => {
     const [loginMode,   setLoginMode]  = useState('phone');
     const [country,     setCountry]    = useState(COUNTRIES[0]);
@@ -63,7 +70,6 @@ const LoginScreen = ({ navigation }) => {
     const { login } = useAuth();
 
     const tabAnim = useRef(new Animated.Value(0)).current;
-    const RING_SIZE = width * 0.18;
 
     const switchMode = (mode) => {
         setLoginMode(mode);
@@ -96,13 +102,16 @@ const LoginScreen = ({ navigation }) => {
         c.dial.includes(searchQuery)
     );
 
-    const tabLeft = tabAnim.interpolate({ inputRange: [0, 1], outputRange: ['3%', '51%'] });
+    const tabLeft = tabAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['2%', '50%'],
+    });
 
     return (
         <SafeAreaView style={styles.safe}>
             <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-            {/* Country picker modal */}
+            {/* ── Country picker modal ── */}
             <Modal visible={pickerOpen} animationType="slide" transparent>
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalSheet}>
@@ -134,7 +143,9 @@ const LoginScreen = ({ navigation }) => {
                                     <Text style={styles.countryFlag}>{item.flag}</Text>
                                     <Text style={styles.countryName}>{item.name}</Text>
                                     <Text style={styles.countryDial}>+{item.dial}</Text>
-                                    {item.code === country.code && <Ionicons name="checkmark" size={16} color="#FFA726" />}
+                                    {item.code === country.code && (
+                                        <Ionicons name="checkmark" size={16} color="#FFA726" />
+                                    )}
                                 </TouchableOpacity>
                             )}
                             keyboardShouldPersistTaps="handled"
@@ -147,55 +158,69 @@ const LoginScreen = ({ navigation }) => {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.kav}
             >
-                <View style={styles.container}>
+                <View style={styles.screen}>
 
-                    {/* ── Brand header ── */}
-                    <View style={styles.header}>
+                    {/* ══ TOP SECTION — Logo + Lottie ══ */}
+                    <View style={styles.top}>
+                        {/* Pulse rings + logo */}
                         <View style={styles.logoWrap}>
-                            <PulseRing delay={0}    color="#FFA726" size={RING_SIZE} />
-                            <PulseRing delay={900}  color="#4DB6E8" size={RING_SIZE} />
+                            <PulseRing delay={0}    color="#FFA726" thickness={2.5} />
+                            <PulseRing delay={800}  color="#4DB6E8" thickness={2}   />
+                            <PulseRing delay={1600} color="#FFA726" thickness={1.5} />
                             <Image
                                 source={require('../../../assets/logo.png')}
                                 style={styles.logo}
                                 resizeMode="contain"
                             />
                         </View>
-                        <View style={styles.brandText}>
-                            <Text style={styles.brandName}>Ombia Express</Text>
-                            <Text style={styles.brandTagline}>Move Freely · Anytime · Anywhere</Text>
-                        </View>
+
+                        {/* Tagline */}
+                        <Text style={styles.tagline}>
+                            <Text style={styles.taglineAccent}>Move Freely</Text>
+                            <Text style={styles.taglineDot}>{'  ·  '}</Text>
+                            {'Anytime'}
+                            <Text style={styles.taglineDot}>{'  ·  '}</Text>
+                            {'Anywhere'}
+                        </Text>
+
+                        {/* Lottie — smaller than before */}
+                        <LottieView
+                            source={require('../../../assets/delivery.json')}
+                            autoPlay
+                            loop
+                            style={styles.lottie}
+                        />
                     </View>
 
-                    {/* ── Form card ── */}
-                    <View style={styles.card}>
-                        <Text style={styles.cardTitle}>Connexion</Text>
+                    {/* ══ BOTTOM SECTION — Form ══ */}
+                    <View style={styles.form}>
 
-                        {/* Toggle tab */}
+                        {/* Phone / Email toggle */}
                         <View style={styles.tabContainer}>
                             <Animated.View style={[styles.tabIndicator, { left: tabLeft }]} />
                             <TouchableOpacity style={styles.tabButton} onPress={() => switchMode('phone')} activeOpacity={0.8}>
-                                <Ionicons name="call-outline" size={15} color={loginMode === 'phone' ? '#FFA726' : '#9AA3B0'} />
+                                <Ionicons name="call-outline" size={14} color={loginMode === 'phone' ? '#FFA726' : '#9AA3B0'} />
                                 <Text style={[styles.tabLabel, loginMode === 'phone' && styles.tabLabelActive]}>Téléphone</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.tabButton} onPress={() => switchMode('email')} activeOpacity={0.8}>
-                                <Ionicons name="mail-outline" size={15} color={loginMode === 'email' ? '#FFA726' : '#9AA3B0'} />
+                                <Ionicons name="mail-outline" size={14} color={loginMode === 'email' ? '#FFA726' : '#9AA3B0'} />
                                 <Text style={[styles.tabLabel, loginMode === 'email' && styles.tabLabelActive]}>Email</Text>
                             </TouchableOpacity>
                         </View>
 
                         {/* Identifier input */}
                         {loginMode === 'phone' ? (
-                            <View style={styles.inputRow}>
+                            <View style={styles.inputContainer}>
                                 <TouchableOpacity style={styles.dialPicker} onPress={() => setPickerOpen(true)}>
                                     <Text style={styles.dialFlag}>{country.flag}</Text>
                                     <Text style={styles.dialCode}>+{country.dial}</Text>
-                                    <Ionicons name="chevron-down" size={11} color="#9AA3B0" />
+                                    <Ionicons name="chevron-down" size={12} color="#9AA3B0" />
                                 </TouchableOpacity>
                                 <View style={styles.dialDivider} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder={country.placeholder || 'Numéro de téléphone'}
-                                    placeholderTextColor="#C4C9D4"
+                                    placeholderTextColor="#bbb"
                                     value={localPhone}
                                     onChangeText={setLocalPhone}
                                     keyboardType="phone-pad"
@@ -203,12 +228,12 @@ const LoginScreen = ({ navigation }) => {
                                 />
                             </View>
                         ) : (
-                            <View style={styles.inputRow}>
-                                <Ionicons name="mail-outline" size={18} color="#4DB6E8" style={{ marginRight: 10 }} />
+                            <View style={styles.inputContainer}>
+                                <Ionicons name="mail-outline" size={20} color="#4DB6E8" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Adresse email"
-                                    placeholderTextColor="#C4C9D4"
+                                    placeholderTextColor="#bbb"
                                     value={email}
                                     onChangeText={setEmail}
                                     keyboardType="email-address"
@@ -220,12 +245,12 @@ const LoginScreen = ({ navigation }) => {
                         )}
 
                         {/* Password */}
-                        <View style={styles.inputRow}>
-                            <Ionicons name="lock-closed-outline" size={18} color="#4DB6E8" style={{ marginRight: 10 }} />
+                        <View style={styles.inputContainer}>
+                            <Ionicons name="lock-closed-outline" size={20} color="#4DB6E8" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
                                 placeholder="Mot de passe"
-                                placeholderTextColor="#C4C9D4"
+                                placeholderTextColor="#bbb"
                                 value={password}
                                 onChangeText={setPassword}
                                 secureTextEntry={!showPass}
@@ -234,116 +259,111 @@ const LoginScreen = ({ navigation }) => {
                                 onSubmitEditing={handleLogin}
                             />
                             <TouchableOpacity onPress={() => setShowPass(v => !v)}>
-                                <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={18} color="#C4C9D4" />
+                                <Ionicons
+                                    name={showPass ? 'eye-off-outline' : 'eye-outline'}
+                                    size={18} color="#C4C9D4"
+                                />
                             </TouchableOpacity>
                         </View>
 
                         {/* Login button */}
                         <TouchableOpacity
-                            style={[styles.btn, loading && styles.btnDisabled]}
+                            style={[styles.button, loading && styles.buttonDisabled]}
                             onPress={handleLogin}
                             disabled={loading}
                             activeOpacity={0.85}
                         >
                             {loading
                                 ? <ActivityIndicator color="#fff" />
-                                : <Text style={styles.btnText}>Se connecter</Text>
+                                : <Text style={styles.buttonText}>Se connecter</Text>
                             }
                         </TouchableOpacity>
 
                         {/* Register link */}
-                        <TouchableOpacity style={styles.linkBtn} onPress={() => navigation.navigate('Register')}>
+                        <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Register')}>
                             <Text style={styles.linkText}>
                                 Pas encore de compte ?{'  '}
-                                <Text style={styles.linkBold}>Créer un compte →</Text>
+                                <Text style={styles.linkTextBold}>S'inscrire →</Text>
                             </Text>
                         </TouchableOpacity>
                     </View>
+
                 </View>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-    safe:      { flex: 1, backgroundColor: '#F4F6FB' },
-    kav:       { flex: 1 },
-    container: {
+    safe: { flex: 1, backgroundColor: '#fff' },
+    kav:  { flex: 1 },
+
+    screen: {
         flex: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 22,
-        paddingVertical: 12,
+        // No ScrollView — just two flex regions that fill the screen
     },
 
-    // ── Header ──
-    header: {
-        flexDirection: 'row',
+    // ══ TOP — takes ~44% of screen ══
+    top: {
+        flex: 44,
         alignItems: 'center',
-        marginBottom: 28,
-        paddingLeft: 4,
+        justifyContent: 'center',
+        paddingTop: 4,
     },
     logoWrap: {
-        width: width * 0.18,
-        height: width * 0.18,
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 14,
+        width: RING_BASE * 2.2,
+        height: RING_BASE * 1.0,
+        marginBottom: 2,
     },
     logo: {
-        width: width * 0.17,
-        height: width * 0.17 * 0.65,
+        width: LOGO_WIDTH,
+        height: LOGO_WIDTH * 0.42,
     },
-    brandText: { flex: 1 },
-    brandName: {
-        fontSize: 22,
-        fontWeight: '900',
+    tagline: {
+        fontSize: 12,
+        fontWeight: '600',
         color: '#1C2E4A',
-        letterSpacing: 0.3,
+        letterSpacing: 0.4,
+        textAlign: 'center',
+        marginBottom: 2,
     },
-    brandTagline: {
-        fontSize: 11,
-        color: '#9AA3B0',
-        fontWeight: '500',
-        marginTop: 2,
+    taglineAccent: { color: '#FFA726', fontWeight: '900', fontSize: 14 },
+    taglineDot:    { color: '#4DB6E8', fontWeight: '700' },
+    lottie: {
+        width: LOTTIE_SIZE,
+        height: LOTTIE_SIZE * 0.92,
     },
 
-    // ── Card ──
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 24,
-        padding: 24,
-        shadowColor: '#1C2E4A',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.08,
-        shadowRadius: 24,
-        elevation: 8,
-    },
-    cardTitle: {
-        fontSize: 24,
-        fontWeight: '800',
-        color: '#1C2E4A',
-        marginBottom: 18,
+    // ══ BOTTOM — takes ~56% of screen ══
+    form: {
+        flex: 56,
+        paddingHorizontal: 26,
+        paddingTop: 4,
+        justifyContent: 'flex-start',
     },
 
-    // ── Tabs ──
+    // ── Toggle tabs ──
     tabContainer: {
         flexDirection: 'row',
         backgroundColor: '#F3F4F6',
-        borderRadius: 12,
+        borderRadius: 13,
         padding: 3,
-        marginBottom: 16,
+        marginBottom: 12,
         position: 'relative',
         overflow: 'hidden',
     },
     tabIndicator: {
         position: 'absolute',
         top: 3, bottom: 3,
-        width: '46%',
+        width: '48%',
         backgroundColor: '#fff',
         borderRadius: 10,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.07,
+        shadowOpacity: 0.08,
         shadowRadius: 3,
         elevation: 2,
     },
@@ -353,24 +373,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 5,
-        paddingVertical: 9,
+        paddingVertical: 8,
         zIndex: 1,
     },
     tabLabel:       { fontSize: 13, fontWeight: '600', color: '#9AA3B0' },
     tabLabelActive: { color: '#1C2E4A' },
 
     // ── Inputs ──
-    inputRow: {
+    inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F8F9FC',
-        borderRadius: 14,
         borderWidth: 1.5,
-        borderColor: '#EAECF2',
+        borderColor: 'rgba(77,182,232,0.25)',
+        borderRadius: 14,
+        marginBottom: 11,
         paddingHorizontal: 14,
-        marginBottom: 12,
-        minHeight: 52,
+        backgroundColor: '#fafafa',
+        height: 50,
     },
+    inputIcon: { marginRight: 10 },
     input: {
         flex: 1,
         fontSize: 15,
@@ -392,34 +413,66 @@ const styles = StyleSheet.create({
     },
 
     // ── Button ──
-    btn: {
+    button: {
         backgroundColor: '#FFA726',
         paddingVertical: 15,
         borderRadius: 14,
         alignItems: 'center',
-        marginTop: 6,
+        marginTop: 4,
         shadowColor: '#FFA726',
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.35,
+        shadowOpacity: 0.4,
         shadowRadius: 12,
         elevation: 6,
     },
-    btnDisabled: { opacity: 0.6 },
-    btnText: { color: '#fff', fontSize: 16, fontWeight: '800', letterSpacing: 0.3 },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '800',
+        letterSpacing: 0.3,
+    },
 
-    // ── Link ──
-    linkBtn: { marginTop: 18, alignItems: 'center' },
-    linkText: { color: '#9AA3B0', fontSize: 13 },
-    linkBold: { color: '#4DB6E8', fontWeight: '700' },
+    // ── Register link ──
+    linkButton: { marginTop: 14, alignItems: 'center' },
+    linkText:     { color: '#aaa', fontSize: 13 },
+    linkTextBold: { color: '#4DB6E8', fontWeight: '700' },
 
-    // ── Modal ──
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
-    modalSheet:   { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '75%', paddingBottom: 32 },
-    modalHeader:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, paddingBottom: 12, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-    modalTitle:   { fontSize: 17, fontWeight: '800', color: '#1C2E4A' },
-    searchRow:    { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 12, margin: 16, marginBottom: 8, paddingHorizontal: 12, gap: 8 },
-    searchInput:  { flex: 1, height: 40, fontSize: 14, color: '#1a1a1a' },
-    countryRow:   { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 12, gap: 12 },
+    // ── Country modal ──
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.4)',
+        justifyContent: 'flex-end',
+    },
+    modalSheet: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        maxHeight: '75%',
+        paddingBottom: 32,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 20, paddingBottom: 12,
+        borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB',
+    },
+    modalTitle: { fontSize: 17, fontWeight: '800', color: '#1C2E4A' },
+    searchRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F3F4F6',
+        borderRadius: 12,
+        margin: 16, marginBottom: 8,
+        paddingHorizontal: 12, gap: 8,
+    },
+    searchInput: { flex: 1, height: 40, fontSize: 14, color: '#1a1a1a' },
+    countryRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20, paddingVertical: 12, gap: 12,
+    },
     countryRowActive: { backgroundColor: '#FFF8EE' },
     countryFlag:  { fontSize: 22 },
     countryName:  { flex: 1, fontSize: 14, color: '#1C2E4A', fontWeight: '500' },
