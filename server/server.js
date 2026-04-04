@@ -3,7 +3,8 @@ const Sentry = require('@sentry/node');
 Sentry.init({
     dsn: 'http://2c515d222ac2496d9b77160714a2646c@37.60.240.199:8765/2',
     environment: process.env.NODE_ENV || 'production',
-    tracesSampleRate: 0.1,
+    tracesSampleRate: 0.01,
+    autoSessionTracking: false,
 });
 
 const express = require('express');
