@@ -1,19 +1,18 @@
 # Jenkins CI/CD — Android APK Build on Server 37.60.240.199
 
-## Server Audit Results (Verified 2026-04-03)
+## Server Audit Results (Verified 2026-04-04)
 
 ```
-OS:           Ubuntu (VPS — vmi3144428)
-Disk:         141 GB free / 145 GB total  ✅ plenty of space
-Port 80:      Nginx → carte_grise frontend + ombia-admin
+OS:           Ubuntu 24.04 LTS (vmi3144428)
+Disk:         141 GB free / 145 GB total  ✅
+Java:         OpenJDK 17.0.18 (already installed)  ✅
+Port 80:      Nginx → carte_grise + ombia-admin
 Port 5000:    Node.js → carte-grise-backend (PM2)
 Port 5001:    Node.js → ombia-express-api (PM2)
 Port 5432:    PostgreSQL (localhost only)
-Port 8080:    FREE → Jenkins will use this  ✅
+Port 8080:    Jenkins  ✅ installed and running
 Nginx config: /etc/nginx/sites-enabled/carte_grise (single file)
 ```
-
-**No conflicts.** Jenkins installs cleanly alongside existing apps.
 
 ---
 
@@ -21,71 +20,29 @@ Nginx config: /etc/nginx/sites-enabled/carte_grise (single file)
 
 ```
 PORT 80 — Nginx (carte_grise config)
-  ├── /                → carte_grise frontend (static, /var/www/carte_grise/frontend-dist)
+  ├── /                → carte_grise frontend (static)
   ├── /api/            → carte-grise-backend (port 5000, PM2)
   ├── /uploads/        → static uploads
   ├── /generated_pdfs/ → static PDFs
-  └── /jenkins         → Jenkins (NEW — proxy to localhost:8080)
+  └── /jenkins         → Jenkins (proxy to localhost:8080) ✅ added
 
 PORT 5000 — carte-grise-backend (PM2, UNTOUCHED)
 PORT 5001 — ombia-express-api (PM2, UNTOUCHED)
 PORT 8080 — Jenkins internal (not exposed publicly)
 
 /var/www/              → existing apps (UNTOUCHED)
-/var/lib/jenkins/      → Jenkins data (new, separate)
-/opt/android-sdk/      → Android SDK (new, separate)
+/var/lib/jenkins/      → Jenkins data
+/opt/android-sdk/      → Android SDK (to be installed)
 ```
 
 ---
 
-## Step 1 — Add Jenkins Block to Nginx
+## Step 1 — Add Jenkins Block to Nginx ✅ DONE
 
-Open the existing Nginx config:
-
-```bash
-sudo nano /etc/nginx/sites-enabled/carte_grise
-```
-
-Add the Jenkins location block **before the closing `}`** — after the `/generated_pdfs/` block:
+Edited `/etc/nginx/sites-enabled/carte_grise` — added before the closing `}`:
 
 ```nginx
-server {
-    listen 80;
-    server_name 37.60.240.199;
-
-    # Frontend
-    root /var/www/carte_grise/frontend-dist;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Backend API
-    location /api/ {
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    # Static Files (Uploads)
-    location /uploads/ {
-        alias /var/www/carte_grise/Backend/uploads/;
-        autoindex off;
-    }
-
-    # Static Files (Generated PDFs)
-    location /generated_pdfs/ {
-        alias /var/www/carte_grise/Backend/generated_pdfs/;
-        autoindex off;
-    }
-
-    # ─── Jenkins CI/CD (added 2026-04-03) ────────────────────────
+    # ─── Jenkins CI/CD (added 2026-04-04) ────────────────────────
     location /jenkins {
         proxy_pass         http://127.0.0.1:8080;
         proxy_redirect     http://127.0.0.1:8080 http://37.60.240.199/jenkins;
@@ -100,106 +57,90 @@ server {
         proxy_connect_timeout 300s;
     }
     # ─────────────────────────────────────────────────────────────
-}
 ```
 
-Validate and reload (zero downtime — existing apps keep running):
-
-```bash
-sudo nginx -t
-# Expected: syntax is ok / test is successful
-
-sudo systemctl reload nginx
-```
+Validated with `sudo nginx -t` → OK. Reloaded with `sudo systemctl reload nginx`.
 
 ---
 
-## Step 2 — Install Java 17
-
-Jenkins requires Java. This does not affect existing Node.js apps.
+## Step 2 — Java 17 ✅ ALREADY INSTALLED
 
 ```bash
-sudo apt update
-sudo apt install -y openjdk-17-jdk
-
-# Verify
 java -version
-# Expected: openjdk version "17.x.x"
+# openjdk version "17.0.18" 2026-01-20 — already present on server
 ```
 
 ---
 
-## Step 3 — Install Jenkins
+## Step 3 — Install Jenkins ✅ DONE
+
+> **Note:** The `jenkins.io-2023.key` expired on 2026-03-26. The `jenkins.io-2025.key`
+> does not exist yet. The correct fix is to fetch the new key ID directly from the
+> Ubuntu keyserver.
 
 ```bash
-# Add Jenkins apt repository
-curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
-  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+# Clean up any failed attempts first
+sudo rm -f /etc/apt/sources.list.d/jenkins.list
+sudo rm -f /usr/share/keyrings/jenkins-keyring.gpg
 
-echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+# Fetch the current Jenkins signing key directly from keyserver
+sudo gpg --no-default-keyring \
+  --keyring /usr/share/keyrings/jenkins-keyring.gpg \
+  --keyserver keyserver.ubuntu.com \
+  --recv-keys 7198F4B714ABFC68
+
+# Add the repo
+echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.gpg] \
   https://pkg.jenkins.io/debian-stable binary/" | sudo tee \
   /etc/apt/sources.list.d/jenkins.list > /dev/null
 
-sudo apt update
-sudo apt install -y jenkins
+# Install
+sudo apt update && sudo apt install -y jenkins
 
 # Enable and start
-sudo systemctl enable jenkins
-sudo systemctl start jenkins
-
-# Verify it's running
+sudo systemctl enable jenkins && sudo systemctl start jenkins
 sudo systemctl status jenkins
 # Expected: Active: active (running)
 ```
 
 ---
 
-## Step 4 — Tell Jenkins It Lives at /jenkins
-
-Jenkins needs to know it's served from a subpath, not the root.
+## Step 4 — Configure Jenkins Prefix (/jenkins) ✅ DONE
 
 ```bash
 sudo nano /usr/lib/systemd/system/jenkins.service
 ```
 
-Find the `Environment="JAVA_OPTS=...` line and add the prefix option.
-The file should have these two environment lines:
+Added this line after the existing `Environment="JAVA_OPTS=...` line:
 
 ```ini
-Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=true"
 Environment="JENKINS_OPTS=--prefix=/jenkins"
 ```
 
-Apply the changes:
+Applied:
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl restart jenkins
-
-# Confirm still running
-sudo systemctl status jenkins
+sudo systemctl daemon-reload && sudo systemctl restart jenkins
+sleep 10 && sudo systemctl status jenkins | head -5
+# Expected: Active: active (running)
 ```
 
 ---
 
-## Step 5 — First Login
+## Step 5 — First Login ✅ DONE
 
-Get the initial admin password:
-
+Got initial password:
 ```bash
 sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 ```
 
-Open in browser:
-```
-http://37.60.240.199/jenkins
-```
+Opened in browser: `http://37.60.240.199/jenkins`
 
-1. Paste the password
-2. Click **Install suggested plugins** (wait ~3–5 min)
-3. Create your admin user (save the credentials!)
-4. On **"Jenkins URL"** screen → set to `http://37.60.240.199/jenkins`
-5. Click **Save and Finish** → **Start using Jenkins**
+1. Pasted the initial password
+2. Clicked **Install suggested plugins**
+3. Created admin user
+4. Set Jenkins URL to `http://37.60.240.199/jenkins`
+5. Save and Finish
 
 ---
 
@@ -221,7 +162,7 @@ sudo unzip commandlinetools-linux-*.zip
 sudo mv cmdline-tools latest
 sudo rm commandlinetools-linux-*.zip
 
-# Set environment variables system-wide
+# Set ANDROID_HOME system-wide
 sudo tee -a /etc/environment > /dev/null << 'EOF'
 ANDROID_HOME=/opt/android-sdk
 EOF
@@ -238,7 +179,7 @@ yes | /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
   "build-tools;35.0.1" \
   "ndk;27.1.12297006"
 
-# Give Jenkins user ownership of the SDK
+# Give Jenkins user ownership
 sudo chown -R jenkins:jenkins /opt/android-sdk
 
 # Verify
@@ -248,15 +189,17 @@ ls /opt/android-sdk/
 
 ---
 
-## Step 7 — Install Node.js 20
+## Step 7 — Node.js 20 (already installed on server)
 
+```bash
+node -v   # verify v20.x is present
+npm -v    # verify 10.x
+```
+
+If not installed:
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
-
-# Verify
-node -v   # v20.x
-npm -v    # 10.x
 ```
 
 ---
@@ -266,7 +209,7 @@ npm -v    # 10.x
 1. Go to `http://37.60.240.199/jenkins`
 2. **Manage Jenkins** → **Plugins** → **Available plugins**
 3. Search `GitHub` → check **GitHub plugin** → **Install**
-4. Restart Jenkins after install:
+4. Restart after install:
    ```bash
    sudo systemctl restart jenkins
    ```
@@ -276,22 +219,21 @@ npm -v    # 10.x
 ## Step 9 — Create the Pipeline Job
 
 1. Jenkins dashboard → **New Item**
-2. Name: `ombia-express-apk`
-3. Type: **Pipeline** → OK
-4. Under **Build Triggers** → check **"GitHub hook trigger for GITScm polling"**
-5. Under **Pipeline**:
+2. Name: `ombia-express-apk` → **Pipeline** → OK
+3. **Build Triggers** → check **"GitHub hook trigger for GITScm polling"**
+4. **Pipeline** section:
    - Definition: `Pipeline script from SCM`
    - SCM: `Git`
    - Repository URL: `https://github.com/MoctarSidibe/ombiasexpress.git`
    - Branch Specifier: `*/main`
    - Script Path: `Jenkinsfile`
-6. **Save**
+5. **Save**
 
 ---
 
 ## Step 10 — Add GitHub Webhook
 
-In GitHub → `https://github.com/MoctarSidibe/ombiasexpress/settings/hooks` → **Add webhook**
+GitHub → `https://github.com/MoctarSidibe/ombiasexpress/settings/hooks` → **Add webhook**
 
 | Field | Value |
 |-------|-------|
@@ -299,13 +241,13 @@ In GitHub → `https://github.com/MoctarSidibe/ombiasexpress/settings/hooks` →
 | Content type | `application/json` |
 | Which events | Just the **push** event |
 
-Save → GitHub will send a ping → check it shows a green tick ✅
+Save → verify green tick ✅ in Recent Deliveries.
 
 ---
 
-## Step 11 — Add Jenkinsfile to the Repo
+## Step 11 — Jenkinsfile (in repo root)
 
-Create `Jenkinsfile` at the root of the repo (already done — verify it exists):
+Already committed in the repo. Content:
 
 ```groovy
 pipeline {
@@ -369,24 +311,17 @@ pipeline {
 }
 ```
 
-Commit and push:
-```bash
-git add Jenkinsfile
-git commit -m "ci: add Jenkinsfile for Jenkins pipeline"
-git push origin main
-```
-
 ---
 
 ## Step 12 — Trigger First Build & Download APK
 
 ```bash
-# Trigger manually from your machine
+# From your local machine — push any change to trigger
 git commit --allow-empty -m "ci: trigger first Jenkins build"
 git push origin main
 ```
 
-Watch the build at:
+Watch the build:
 ```
 http://37.60.240.199/jenkins → ombia-express-apk → Console Output
 ```
@@ -400,40 +335,22 @@ http://37.60.240.199/jenkins → ombia-express-apk → Last Successful Build →
 
 ## Verify Existing Apps Are Untouched
 
-Run after every Jenkins step:
-
 ```bash
-# carte-grise frontend still accessible
+# carte-grise frontend
 curl -s -o /dev/null -w "%{http_code}" http://37.60.240.199/
 # Expected: 200
 
-# ombia-express-api still running
+# ombia-express-api
 curl -s -o /dev/null -w "%{http_code}" http://37.60.240.199:5001/api/health
 # Expected: 200
 
-# PM2 apps all online
+# PM2 all online
 pm2 list
-# Expected: carte-grise-backend, ombia-admin, ombia-express-api — all online
 
-# Jenkins accessible
+# Jenkins up
 curl -s -o /dev/null -w "%{http_code}" http://37.60.240.199/jenkins/login
 # Expected: 200
 ```
-
----
-
-## Build Speed Optimization
-
-Add to `mobile/android/gradle.properties` (already in repo):
-```properties
-org.gradle.caching=true
-org.gradle.daemon=true
-```
-
-| Build | Expected time |
-|-------|--------------|
-| First build (cold) | ~15–20 min |
-| Subsequent builds (warm cache) | ~5–8 min |
 
 ---
 
@@ -441,14 +358,13 @@ org.gradle.daemon=true
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `http://37.60.240.199/jenkins` → 502 | Jenkins not running | `sudo systemctl start jenkins` |
-| `http://37.60.240.199/jenkins` → 404 | Nginx block missing or prefix not set | Check Step 1 and Step 4 |
-| `http://37.60.240.199/` broken after reload | Nginx syntax error | `sudo nginx -t` — fix errors before reloading |
-| PM2 apps down after install | Shouldn't happen — check anyway | `pm2 resurrect` or `pm2 start all` |
+| `/jenkins` → 502 | Jenkins not running | `sudo systemctl start jenkins` |
+| `/jenkins` → 404 | Nginx block missing or prefix not set | Check Step 1 and Step 4 |
+| Existing apps broken after Nginx reload | Syntax error | `sudo nginx -t` before reloading |
+| GPG key error during apt install | `jenkins.io-2023.key` expired March 2026 | Use keyserver method in Step 3 |
 | `ANDROID_HOME not set` in build | Env not loaded for jenkins user | Re-check `/etc/environment`, restart Jenkins |
-| `Out of memory` during Gradle | Server RAM limit hit | Set `org.gradle.jvmargs=-Xmx2048m` in gradle.properties |
-| Webhook not triggering | GitHub can't reach server | Check `ufw allow 80` on server |
-| First build never starts | Webhook not configured | Go to GitHub → Settings → Webhooks → Recent Deliveries |
+| `Out of memory` during Gradle | RAM limit | Set `org.gradle.jvmargs=-Xmx2048m` |
+| Webhook not triggering | GitHub can't reach server | `sudo ufw allow 80` |
 
 ---
 
