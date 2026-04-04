@@ -1,3 +1,12 @@
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+    dsn: 'http://019000ecf9634046956d3acb91eb3332@37.60.240.199:8765/1',
+    environment: __DEV__ ? 'development' : 'production',
+    tracesSampleRate: 0.1,
+    enableNative: false, // set true after testing
+});
+
 import React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
@@ -16,6 +25,7 @@ class ErrorBoundary extends React.Component {
         console.error('Error:', error?.message);
         console.error('Stack:', error?.stack);
         console.error('Component:', info?.componentStack);
+        Sentry.captureException(error, { extra: info });
         this.setState({ hasError: true, error, info });
     }
     render() {
@@ -36,7 +46,7 @@ class ErrorBoundary extends React.Component {
     }
 }
 
-export default function App() {
+function App() {
     return (
         <ErrorBoundary>
             <GestureHandlerRootView style={styles.container}>
@@ -50,6 +60,8 @@ export default function App() {
         </ErrorBoundary>
     );
 }
+
+export default Sentry.wrap(App);
 
 const styles = StyleSheet.create({
     container: { flex: 1 }
