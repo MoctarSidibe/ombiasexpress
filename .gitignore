@@ -51,6 +51,8 @@ nul
 !mobile/assets/*.jpg
 !mobile/assets/*.jpeg
 !admin/public/logo.png
+# Android drawable resources (required for Gradle build)
+!mobile/android/app/src/main/res/drawable/*.png
 Screenshot_*
 OmbiaExpress-Logo-Vecteur*
 Ombia-Express*
