@@ -144,7 +144,7 @@ Opened in browser: `http://37.60.240.199/jenkins`
 
 ---
 
-## Step 6 — Install Android SDK
+## Step 6 — Install Android SDK ✅ DONE
 
 Isolated to `/opt/android-sdk/` — nothing to do with `/var/www/`.
 
@@ -189,34 +189,27 @@ ls /opt/android-sdk/
 
 ---
 
-## Step 7 — Node.js 20 (already installed on server)
+## Step 7 — Node.js 20 ✅ ALREADY INSTALLED
 
 ```bash
-node -v   # verify v20.x is present
-npm -v    # verify 10.x
-```
-
-If not installed:
-```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
+node -v   # v20.20.2
+npm -v    # 10.8.2
 ```
 
 ---
 
-## Step 8 — Install GitHub Plugin in Jenkins
+## Step 8 — Install GitHub Plugin in Jenkins ✅ DONE
 
-1. Go to `http://37.60.240.199/jenkins`
-2. **Manage Jenkins** → **Plugins** → **Available plugins**
-3. Search `GitHub` → check **GitHub plugin** → **Install**
-4. Restart after install:
-   ```bash
-   sudo systemctl restart jenkins
-   ```
+> In Jenkins 2.541 "Manage Jenkins" is in the left sidebar or navigate directly to
+> `http://37.60.240.199/jenkins/manage`
+
+1. **Manage Jenkins** → **Plugins** → **Available plugins**
+2. Search `GitHub` → install **GitHub Integration** (Version 0.7.3)
+3. Wait for install to complete
 
 ---
 
-## Step 9 — Create the Pipeline Job
+## Step 9 — Create the Pipeline Job ✅ DONE
 
 1. Jenkins dashboard → **New Item**
 2. Name: `ombia-express-apk` → **Pipeline** → OK
@@ -245,9 +238,9 @@ Save → verify green tick ✅ in Recent Deliveries.
 
 ---
 
-## Step 11 — Jenkinsfile (in repo root)
+## Step 11 — Jenkinsfile ✅ COMMITTED & PUSHED
 
-Already committed in the repo. Content:
+File: `Jenkinsfile` at repo root — committed on 2026-04-04. Content:
 
 ```groovy
 pipeline {
