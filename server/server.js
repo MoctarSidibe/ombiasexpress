@@ -106,18 +106,23 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
 
 app.set('io', io);
 
-// ── Documentation Swagger (CSP assoupli pour /api-docs uniquement) ───────────
-const swaggerCsp = helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc:  ["'self'", "'unsafe-inline'"],
-            styleSrc:   ["'self'", "'unsafe-inline'"],
-            imgSrc:     ["'self'", 'data:', 'https:'],
-            connectSrc: ["'self'"],
-        },
-    },
-});
+// ── Documentation Swagger (/api-docs) ────────────────────────────────────────
+// Override les headers helmet pour cette route uniquement :
+//   - Supprime upgrade-insecure-requests (cause ERR_SSL sur serveur HTTP)
+//   - Supprime HSTS (idem)
+//   - Autorise unsafe-inline pour les scripts/styles de swagger-ui
+const swaggerHeaders = (req, res, next) => {
+    res.setHeader(
+        'Content-Security-Policy',
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline'; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "img-src 'self' data: https: blob:; " +
+        "connect-src 'self';"
+    );
+    res.removeHeader('Strict-Transport-Security');
+    next();
+};
 const swaggerUiOpts = {
     customSiteTitle: 'Ombia Express — API Docs',
     customCss: `
@@ -128,7 +133,7 @@ const swaggerUiOpts = {
         .swagger-ui .btn.authorize svg { fill: #fff; }
     `,
 };
-app.use('/api-docs', swaggerCsp, swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOpts));
+app.use('/api-docs', swaggerHeaders, swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOpts));
 app.get('/api-docs.json', (req, res) => res.json(swaggerSpec));
 
 // ── Health check (no auth, no rate limit) ────────────────────────────────────
