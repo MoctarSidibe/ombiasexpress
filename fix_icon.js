@@ -12,9 +12,9 @@ const DEST = path.join(__dirname, 'mobile/assets/adaptive-icon-fg.png');
 const BACKUP = path.join(__dirname, 'mobile/assets/adaptive-icon-fg.original.png');
 
 const CANVAS = 1024;
-// Logo should fill ~66% of canvas (safe zone), so 66% of 1024 = 676px
-const LOGO_SIZE = Math.round(CANVAS * 0.66);
-const PADDING   = Math.round((CANVAS - LOGO_SIZE) / 2); // ~174px each side
+// Logo at 78% of canvas — bigger but still within safe zone on all launchers
+const LOGO_SIZE = Math.round(CANVAS * 0.78);
+const PADDING   = Math.round((CANVAS - LOGO_SIZE) / 2);
 
 async function run() {
   // Backup original
