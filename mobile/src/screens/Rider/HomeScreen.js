@@ -19,23 +19,24 @@ const RiderHomeScreen = ({ navigation }) => {
     const requestLocation = async () => {
         try {
             await locationService.requestPermissions();
-        } catch (_) {}
-        try {
             const currentLocation = await locationService.getCurrentLocation();
             setLocation(currentLocation);
         } catch (error) {
-            // Show map anyway with default region (Gabon)
-            setLocation({ latitude: 0.4162, longitude: 9.4673, latitudeDelta: 0.08, longitudeDelta: 0.08 });
+            Alert.alert(
+                'Localisation requise',
+                'Activez la localisation dans les paramètres de votre téléphone pour utiliser cette fonctionnalité.',
+                [{ text: 'OK', onPress: () => navigation.goBack() }]
+            );
         } finally {
             setLoading(false);
         }
     };
 
-    if (loading) {
+    if (loading || !location) {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.center}>
-                    <Text>Chargement de la carte...</Text>
+                    <Text>Localisation en cours...</Text>
                 </View>
             </SafeAreaView>
         );

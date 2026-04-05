@@ -110,8 +110,6 @@ const RideRequestScreen = ({ navigation }) => {
     const getCurrentLocation = async () => {
         try {
             await locationService.requestPermissions();
-        } catch (_) {}
-        try {
             const loc = await locationService.getCurrentLocation();
             setCurrentLocation(loc);
             setPickupCoords({ latitude: loc.latitude, longitude: loc.longitude });
@@ -120,7 +118,10 @@ const RideRequestScreen = ({ navigation }) => {
                 mapRef.current?.setCenter(loc.latitude, loc.longitude, 14);
             }, 1000);
         } catch {
-            // Don't block the screen — user can still type an address manually
+            Alert.alert(
+                'Localisation requise',
+                'Activez la localisation dans les paramètres de votre téléphone.',
+            );
         }
     };
 

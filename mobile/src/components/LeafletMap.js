@@ -66,8 +66,8 @@ function send(type, data) {
 function initMap(region) {
   if (initialized) return;
   initialized = true;
-  var lat = region.latitude || 0;
-  var lng = region.longitude || 0;
+  var lat = region.latitude;
+  var lng = region.longitude;
   var zoom = latDeltaToZoom(region.latitudeDelta || 0.05);
   map = L.map('map', { zoomControl: false, attributionControl: false }).setView([lat, lng], zoom);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
