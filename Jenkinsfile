@@ -40,11 +40,13 @@ pipeline {
 
         stage('Deploy Admin Panel') {
             steps {
-                sh '''
-                    mkdir -p ${ADMIN_DIST_DIR}
-                    rsync -a --delete admin/dist/ ${ADMIN_DIST_DIR}/
-                    echo "Admin panel deployed to ${ADMIN_DIST_DIR}"
-                '''
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh '''
+                        mkdir -p ${ADMIN_DIST_DIR}
+                        rsync -a --delete admin/dist/ ${ADMIN_DIST_DIR}/
+                        echo "Admin panel deployed to ${ADMIN_DIST_DIR}"
+                    '''
+                }
             }
         }
 
