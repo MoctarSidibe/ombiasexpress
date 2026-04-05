@@ -117,18 +117,43 @@ const swaggerHeaders = (req, res, next) => {
         "default-src 'self'; " +
         "script-src 'self' 'unsafe-inline'; " +
         "style-src 'self' 'unsafe-inline'; " +
-        "img-src 'self' data: https: blob:; " +
+        "img-src 'self' data: https: blob: http://37.60.240.199:3001; " +
         "connect-src 'self';"
     );
     res.removeHeader('Strict-Transport-Security');
     next();
 };
+const LOGO_URL = 'http://37.60.240.199:3001/logo.png';
 const swaggerUiOpts = {
     customSiteTitle: 'Ombia Express — API Docs',
     customCss: `
-        .topbar { background: #1A2E48 !important; }
+        /* ── Topbar ── */
+        .topbar { background: #1A2E48 !important; padding: 8px 16px; }
+        .topbar-wrapper { display: flex; align-items: center; gap: 12px; }
+        .topbar-wrapper img { content: url('${LOGO_URL}'); height: 42px; width: 42px; object-fit: contain; }
         .topbar-wrapper .link { pointer-events: none; }
-        .swagger-ui .info .title { color: #1A2E48; }
+        .topbar-wrapper .link span { color: #fff; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+
+        /* ── Info title — logo + label sur la même ligne ── */
+        .swagger-ui .info hgroup.main {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .swagger-ui .info hgroup.main::before {
+            content: '';
+            display: inline-block;
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            background-image: url('${LOGO_URL}');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .swagger-ui .info .title { color: #1A2E48; font-size: 28px; }
+
+        /* ── Bouton Authorize ── */
         .swagger-ui .btn.authorize { background: #FFA726; border-color: #FFA726; color: #fff; }
         .swagger-ui .btn.authorize svg { fill: #fff; }
     `,
