@@ -45,8 +45,9 @@ const LEAFLET_HTML = `<!DOCTYPE html>
   .mk-user    { width:18px;height:18px;border-radius:50%;background:#2196F3;border:3px solid rgba(33,150,243,.4);box-shadow:0 0 0 6px rgba(33,150,243,.15); }
   .mk-default { width:20px;height:20px;border-radius:50%;background:#607D8B;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4); }
 
-  /* Bigger zoom buttons for touch */
+  /* Bigger zoom buttons for touch, clear of bottom panels */
   .leaflet-control-zoom a { width:36px !important; height:36px !important; line-height:36px !important; font-size:20px !important; }
+  .leaflet-bottom.leaflet-right { margin-bottom: 220px; margin-right: 8px; }
 </style>
 </head>
 <body>
@@ -69,7 +70,7 @@ function initMap(region) {
   var lng = region.longitude || 0;
   var zoom = latDeltaToZoom(region.latitudeDelta || 0.05);
   map = L.map('map', { zoomControl: false, attributionControl: false }).setView([lat, lng], zoom);
-  L.control.zoom({ position: 'topleft' }).addTo(map);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
   // CartoDB Voyager — free, no API key, reliable in Android WebViews (no 403)
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     maxZoom: 19,

@@ -109,19 +109,18 @@ const RideRequestScreen = ({ navigation }) => {
     // ────────────────────────────────────────────────────────────────────────
     const getCurrentLocation = async () => {
         try {
+            await locationService.requestPermissions();
+        } catch (_) {}
+        try {
             const loc = await locationService.getCurrentLocation();
             setCurrentLocation(loc);
             setPickupCoords({ latitude: loc.latitude, longitude: loc.longitude });
             setPickupAddress('Position actuelle');
-            // Auto-zoom map to user position (modern app behaviour)
-            mapRef.current?.animateToRegion({
-                latitude:      loc.latitude,
-                longitude:     loc.longitude,
-                latitudeDelta:  0.012,
-                longitudeDelta: 0.012,
-            }, 800);
+            setTimeout(() => {
+                mapRef.current?.setCenter(loc.latitude, loc.longitude, 14);
+            }, 1000);
         } catch {
-            Alert.alert('Erreur', 'Impossible d\'obtenir votre position');
+            // Don't block the screen — user can still type an address manually
         }
     };
 
@@ -442,17 +441,20 @@ const RideRequestScreen = ({ navigation }) => {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.locateBtn}
-                    onPress={() => currentLocation && mapRef.current?.fitToCoordinates(
-                        [currentLocation],
-                        { edgePadding: { top: 80, right: 60, bottom: Math.round(SCREEN_HEIGHT * 0.65) + 30, left: 60 }, animated: true }
-                    )}
+                    onPress={() => {
+                        if (currentLocation) {
+                            mapRef.current?.setCenter(currentLocation.latitude, currentLocation.longitude, 15);
+                        } else {
+                            getCurrentLocation();
+                        }
+                    }}
                 >
                     <Ionicons name="locate" size={18} color="#1C2E4A" />
                 </TouchableOpacity>
             </View>
 
             {/* ── Bottom panel — Animated.View rises above keyboard ── */}
-            <Animated.View style={[styles.panel, { bottom: panelBottom, paddingBottom: SPACING.lg + insets.bottom }]}>
+            <Animated.View style={[styles.panel, { bottom: panelBottom, paddingBottom: SPACING.lg + insets.bottom + 16 }]}>
                 <View style={styles.dragHandle} />
                 <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} style={{ flex: 1 }}>
                 <ScrollView
