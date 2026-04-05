@@ -13,15 +13,77 @@
     gap:             12px;
 }
 
+.dash-brand-row {
+    display:     flex;
+    align-items: center;
+    gap:         16px;
+}
+
+/* Logo + pulse */
+.dash-logo-wrap {
+    position: relative;
+    width:    72px;
+    height:   72px;
+    display:  flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.dash-logo-img {
+    width:         52px;
+    height:        52px;
+    border-radius: 14px;
+    object-fit:    contain;
+    background:    #fff;
+    padding:       4px;
+    box-shadow:    0 4px 18px rgba(28,46,74,0.18);
+    position:      relative;
+    z-index:       2;
+}
+
+.dash-pulse-ring {
+    position:      absolute;
+    border-radius: 50%;
+    animation:     dashPulse 2.4s ease-out infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+.dash-pulse-ring-1 {
+    width: 58px; height: 58px;
+    border: 2.5px solid rgba(255,167,38,0.65);
+    animation-delay: 0s;
+}
+.dash-pulse-ring-2 {
+    width: 74px; height: 74px;
+    border: 2px solid rgba(77,182,232,0.45);
+    animation-delay: 0.8s;
+}
+.dash-pulse-ring-3 {
+    width: 90px; height: 90px;
+    border: 1.5px solid rgba(255,167,38,0.22);
+    animation-delay: 1.6s;
+}
+
+@keyframes dashPulse {
+    0%   { transform: scale(0.82); opacity: 0.9; }
+    65%  { transform: scale(1.2);  opacity: 0;   }
+    100% { transform: scale(1.2);  opacity: 0;   }
+}
+
+/* Brand text */
 .dash-title-row { display: flex; align-items: center; gap: 10px; }
 
 .dash-title {
-    font-size:   26px;
-    font-weight: 800;
-    color:       #0F1D2E;
-    margin:      0 0 4px;
-    letter-spacing: -0.5px;
+    font-size:      28px;
+    font-weight:    900;
+    margin:         0 0 4px;
+    letter-spacing: -0.6px;
+    line-height:    1;
 }
+
+.dash-brand-ombia   { color: #1C2E4A; }
+.dash-brand-express { color: #FFA726; }
 
 .dash-sub {
     font-size: 12px;

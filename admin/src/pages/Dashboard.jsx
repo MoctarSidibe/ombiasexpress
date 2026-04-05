@@ -201,16 +201,28 @@ function Dashboard() {
 
             {/* ── Header ── */}
             <div className="dash-header">
-                <div>
-                    <div className="dash-title-row">
-                        <h1 className="dash-title">Tableau de bord</h1>
-                        {refreshing && <ArrowsClockwise size={16} color="#9AA3B0" style={{ animation: 'spin 1s linear infinite' }} />}
+                <div className="dash-brand-row">
+                    {/* Logo with pulse rings */}
+                    <div className="dash-logo-wrap">
+                        <div className="dash-pulse-ring dash-pulse-ring-1" />
+                        <div className="dash-pulse-ring dash-pulse-ring-2" />
+                        <div className="dash-pulse-ring dash-pulse-ring-3" />
+                        <img src="/logo.png" alt="Ombia" className="dash-logo-img" />
                     </div>
-                    <p className="dash-sub">
-                        <span className="live-dot" />
-                        Mis à jour toutes les 30 s &nbsp;·&nbsp;
-                        {now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                    </p>
+                    <div>
+                        <div className="dash-title-row">
+                            <h1 className="dash-title">
+                                <span className="dash-brand-ombia">Ombia</span>
+                                <span className="dash-brand-express"> Express</span>
+                            </h1>
+                            {refreshing && <ArrowsClockwise size={16} color="#9AA3B0" style={{ animation: 'spin 1s linear infinite' }} />}
+                        </div>
+                        <p className="dash-sub">
+                            <span className="live-dot" />
+                            Tableau de bord &nbsp;·&nbsp; Mis à jour toutes les 30 s &nbsp;·&nbsp;
+                            {now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                        </p>
+                    </div>
                 </div>
                 <div className="header-badges">
                     {totalPendingKyc > 0 && (
