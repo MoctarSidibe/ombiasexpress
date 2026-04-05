@@ -130,7 +130,7 @@ const swaggerUiOpts = {
         /* ── Topbar ── */
         .topbar { background: #1A2E48 !important; padding: 8px 16px; }
         .topbar-wrapper { display: flex; align-items: center; gap: 12px; }
-        .topbar-wrapper img { content: url('${LOGO_URL}'); height: 42px; width: 42px; object-fit: contain; }
+        .topbar-wrapper img { content: url('${LOGO_URL}'); height: 72px; width: 72px; object-fit: contain; }
         .topbar-wrapper .link { pointer-events: none; }
         .topbar-wrapper .link span { color: #fff; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
 
@@ -143,9 +143,9 @@ const swaggerUiOpts = {
         .swagger-ui .info hgroup.main::before {
             content: '';
             display: inline-block;
-            width: 48px;
-            height: 48px;
-            min-width: 48px;
+            width: 72px;
+            height: 72px;
+            min-width: 72px;
             background-image: url('${LOGO_URL}');
             background-size: contain;
             background-repeat: no-repeat;
