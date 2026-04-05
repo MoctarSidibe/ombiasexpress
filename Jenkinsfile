@@ -38,7 +38,7 @@ pipeline {
         stage('Build Release APK') {
             steps {
                 dir('mobile/android') {
-                    sh './gradlew assembleRelease --no-daemon'
+                    sh './gradlew assembleRelease --no-daemon -Dorg.jenkinsci.plugins.durabletask.BourneShellScript.HEARTBEAT_CHECK_INTERVAL=86400'
                 }
             }
         }
