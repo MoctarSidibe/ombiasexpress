@@ -32,10 +32,10 @@ services:
   grafana:
     image: grafana/grafana:10.3.3
     ports:
-      - "127.0.0.1:3100:3000"   # Nginx proxies /grafana → this port
+      - "3100:3000"   # Direct access on http://37.60.240.199:3100
     environment:
-      - GF_SERVER_ROOT_URL=http://37.60.240.199/grafana
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SERVER_ROOT_URL=http://37.60.240.199:3100
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=OmbiaGrafana2026!
       - GF_USERS_ALLOW_SIGN_UP=false
