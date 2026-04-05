@@ -32,6 +32,9 @@ const {
     uaFilterMiddleware,
 } = require('./middleware/security.middleware');
 
+const swaggerUi          = require('swagger-ui-express');
+const swaggerSpec        = require('./swagger.spec');
+
 const authRoutes         = require('./routes/auth.routes');
 const vehicleRoutes      = require('./routes/vehicle.routes');
 const rideRoutes         = require('./routes/ride.routes');
@@ -102,6 +105,31 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
 }));
 
 app.set('io', io);
+
+// ── Documentation Swagger (CSP assoupli pour /api-docs uniquement) ───────────
+const swaggerCsp = helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc:  ["'self'", "'unsafe-inline'"],
+            styleSrc:   ["'self'", "'unsafe-inline'"],
+            imgSrc:     ["'self'", 'data:', 'https:'],
+            connectSrc: ["'self'"],
+        },
+    },
+});
+const swaggerUiOpts = {
+    customSiteTitle: 'Ombia Express — API Docs',
+    customCss: `
+        .topbar { background: #1A2E48 !important; }
+        .topbar-wrapper .link { pointer-events: none; }
+        .swagger-ui .info .title { color: #1A2E48; }
+        .swagger-ui .btn.authorize { background: #FFA726; border-color: #FFA726; color: #fff; }
+        .swagger-ui .btn.authorize svg { fill: #fff; }
+    `,
+};
+app.use('/api-docs', swaggerCsp, swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOpts));
+app.get('/api-docs.json', (req, res) => res.json(swaggerSpec));
 
 // ── Health check (no auth, no rate limit) ────────────────────────────────────
 app.get('/health', (req, res) => res.json({
