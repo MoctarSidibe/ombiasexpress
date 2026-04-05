@@ -1,10 +1,11 @@
+import { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
     ChartPieSlice, Users, Truck, RoadHorizon,
     Car, ShoppingBag, ShoppingCart, Key, ClipboardText,
     Tag, Wallet, Gear, IdentificationCard,
     Storefront, Van, Percent, Gift, SignOut, CreditCard, Package, Star, Headset,
-    Shield, UsersFour, UserCircle,
+    Shield, UsersFour, List, X,
 } from '@phosphor-icons/react';
 import { can, isSuperAdmin, getAdminUser } from '../permissions';
 import { adminLogout } from '../api';
@@ -15,12 +16,15 @@ function Layout({ setIsAuthenticated }) {
     const location  = useLocation();
     const adminUser = getAdminUser();
     const superAdmin = isSuperAdmin();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const handleLogout = async () => {
-        await adminLogout(); // A07: server-side token blacklist + clear localStorage
+        await adminLogout();
         setIsAuthenticated(false);
         navigate('/login');
     };
+
+    const closeSidebar = () => setSidebarOpen(false);
 
     const isActive = (path) =>
         path === '/'
@@ -30,7 +34,7 @@ function Layout({ setIsAuthenticated }) {
     const NavLink = ({ to, icon: Icon, label, perm }) => {
         if (perm && !can(perm)) return null;
         return (
-            <Link to={to} className={isActive(to) ? 'nav-link active' : 'nav-link'}>
+            <Link to={to} className={isActive(to) ? 'nav-link active' : 'nav-link'} onClick={closeSidebar}>
                 <Icon size={17} weight={isActive(to) ? 'fill' : 'regular'} />
                 <span>{label}</span>
             </Link>
@@ -39,7 +43,19 @@ function Layout({ setIsAuthenticated }) {
 
     return (
         <div className="layout">
-            <nav className="sidebar">
+            {/* Mobile topbar */}
+            <div className="mobile-topbar">
+                <button className="hamburger" onClick={() => setSidebarOpen(o => !o)}>
+                    {sidebarOpen ? <X size={22} /> : <List size={22} />}
+                </button>
+                <img src="/logo.png" alt="Ombia" className="mobile-logo" />
+                <span className="mobile-title">Ombia Express</span>
+            </div>
+
+            {/* Overlay */}
+            {sidebarOpen && <div className="sidebar-overlay" onClick={closeSidebar} />}
+
+            <nav className={`sidebar${sidebarOpen ? ' sidebar-open' : ''}`}>
                 <div className="sidebar-header">
                     <div className="sidebar-brand">
                         <div className="sidebar-logo-wrap">
