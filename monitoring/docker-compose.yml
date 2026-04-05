@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  # ── Log storage & query engine ──────────────────────────────────────────────
+  loki:
+    image: grafana/loki:2.9.4
+    ports:
+      - "127.0.0.1:3200:3100"   # internal only — Grafana talks to it directly
+    volumes:
+      - ./loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/loki
+    command: -config.file=/etc/loki/loki-config.yml
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # ── Log shipper (reads Nginx + Docker + PM2 logs and sends to Loki) ─────────
+  promtail:
+    image: grafana/promtail:2.9.4
+    volumes:
+      - ./promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro                                    # Nginx logs
+      - /root/.pm2/logs:/pm2logs:ro                            # PM2 app logs
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # ── Dashboard UI ─────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.3.3
+    ports:
+      - "127.0.0.1:3100:3000"   # Nginx proxies /grafana → this port
+    environment:
+      - GF_SERVER_ROOT_URL=http://37.60.240.199/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=OmbiaGrafana2026!
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - loki
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+volumes:
+  loki_data:
+  grafana_data:
+
+networks:
+  monitoring:
+    driver: bridge
