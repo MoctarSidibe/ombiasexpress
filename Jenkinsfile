@@ -8,8 +8,6 @@ pipeline {
         EXPO_PUBLIC_SOCKET_URL = 'http://37.60.240.199:5001'
         VITE_API_URL           = 'http://37.60.240.199:5001/api'
         ADMIN_DIST_DIR         = '/var/www/ombiaexpress/admin/dist'
-        // Fix: NODE_ENV requis par expo-constants, évite l'avertissement et les échecs intermittents
-        NODE_ENV               = 'production'
         // Fix: limite mémoire JVM pour éviter les OOM lors du build Gradle
         GRADLE_OPTS            = '-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError'
         // Fix: Metro bundler — force la sortie propre après le bundling
@@ -74,6 +72,11 @@ pipeline {
         }
 
         stage('Build Release APK') {
+            environment {
+                // NODE_ENV=production ici uniquement — évite que npm install
+                // skippe les devDependencies (vite) dans les stages admin
+                NODE_ENV = 'production'
+            }
             steps {
                 dir('mobile/android') {
                     sh '''
