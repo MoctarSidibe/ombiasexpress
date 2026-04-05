@@ -49,10 +49,6 @@ function Layout({ setIsAuthenticated }) {
                             <div className="pulse-ring pulse-ring-3" />
                             <img src="/logo.png" alt="Ombia" className="sidebar-logo-img" />
                         </div>
-                        <div className="sidebar-brand-name">
-                            <span className="brand-ombia">Ombia</span>
-                            <span className="brand-express"> Express</span>
-                        </div>
                         <p>Panneau d'administration</p>
                     </div>
                 </div>
