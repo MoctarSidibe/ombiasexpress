@@ -7,7 +7,7 @@ pipeline {
         EXPO_PUBLIC_API_URL    = 'http://37.60.240.199:5001/api'
         EXPO_PUBLIC_SOCKET_URL = 'http://37.60.240.199:5001'
         VITE_API_URL           = 'http://37.60.240.199:5001/api'
-        ADMIN_DIST_DIR         = '/var/www/ombia-admin'
+        ADMIN_DIST_DIR         = '/var/www/ombiaexpress/admin/dist'
     }
 
     triggers {
