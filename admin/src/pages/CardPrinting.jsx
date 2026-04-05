@@ -93,11 +93,16 @@ function OmbiaCard({ name, cardNumber, nfcEncoded }) {
             {/* Row 2: NFC icon + card number */}
             <div style={{ display:'flex', alignItems:'center', gap:14, position:'relative', zIndex:1 }}>
                 {/* Orange NFC icon (replaces SIM chip) */}
-                <div style={{ width:38, height:38, borderRadius:'50%', background:'rgba(255,167,38,0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, border:'1.5px solid rgba(255,167,38,0.35)' }}>
-                    {/* MDI nfc icon — matches MaterialCommunityIcons name="nfc" on mobile */}
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFA726">
-                        <path d="M20,2H4A2,2 0 0,0 2,4V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V4A2,2 0 0,0 20,2M20,20H4V4H20V20M18,6H6V11H18V6M16,9H8V8H16V9M6,12H8V14H6V12M9,12H11V14H9V12M12,12H14V14H12V12M15,12H17V14H15V12M6,15H8V17H6V15M9,15H11V17H9V15M12,15H14V17H12V15M15,15H17V17H15V15" />
-                    </svg>
+                {/* Gold SIM chip — exact match of mobile WalletScreen chip */}
+                <div style={{ width:40, height:30, borderRadius:5, background:'#D4AF37', position:'relative', overflow:'hidden', flexShrink:0 }}>
+                    {/* Inner dark plate */}
+                    <div style={{ position:'absolute', top:'15%', left:'15%', width:'70%', height:'70%', borderRadius:3, background:'#B8960C' }} />
+                    {/* Horizontal lines */}
+                    <div style={{ position:'absolute', top:'33%', left:0, right:0, height:1, background:'#B8960C' }} />
+                    <div style={{ position:'absolute', top:'66%', left:0, right:0, height:1, background:'#B8960C' }} />
+                    {/* Vertical lines */}
+                    <div style={{ position:'absolute', left:'33%', top:0, bottom:0, width:1, background:'#B8960C' }} />
+                    <div style={{ position:'absolute', left:'66%', top:0, bottom:0, width:1, background:'#B8960C' }} />
                 </div>
                 {/* Card number */}
                 <div style={{ color:'rgba(255,255,255,0.88)', fontSize:15, letterSpacing:3, fontFamily:"'Courier New', monospace", fontWeight:600 }}>
@@ -151,7 +156,10 @@ function printCard(card) {
             font-family:'Arial',sans-serif;color:#fff;
             border:0.3mm solid rgba(255,167,38,0.4);box-sizing:border-box;
         }
-        .nfc-chip{width:9mm;height:9mm;border-radius:50%;background:rgba(255,167,38,0.15);border:0.4mm solid rgba(255,167,38,0.4);display:inline-flex;align-items:center;justify-content:center}
+        .chip{width:10mm;height:7mm;border-radius:1mm;background:#D4AF37;position:relative;overflow:hidden;flex-shrink:0}
+        .chip-inner{position:absolute;top:15%;left:15%;width:70%;height:70%;border-radius:0.5mm;background:#B8960C}
+        .chip-h{position:absolute;left:0;right:0;height:0.2mm;background:#B8960C}
+        .chip-v{position:absolute;top:0;bottom:0;width:0.2mm;background:#B8960C}
         .num{font-size:3.5mm;letter-spacing:.6mm;font-family:monospace;color:rgba(255,255,255,.88)}
         .holder-label{font-size:1.8mm;color:rgba(255,255,255,.4);letter-spacing:.4mm}
         .holder{font-size:2.8mm;font-weight:700;letter-spacing:.3mm}
@@ -163,7 +171,7 @@ function printCard(card) {
             <div class="nfc-row">NFC &bull; QR</div>
         </div>
         <div style="display:flex;align-items:center;gap:4mm">
-            <div class="nfc-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="#FFA726"><path d="M20,2H4A2,2 0 0,0 2,4V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V4A2,2 0 0,0 20,2M20,20H4V4H20V20M18,6H6V11H18V6M16,9H8V8H16V9M6,12H8V14H6V12M9,12H11V14H9V12M12,12H14V14H12V12M15,12H17V14H15V12M6,15H8V17H6V15M9,15H11V17H9V15M12,15H14V17H12V15M15,15H17V17H15V15"/></svg></div>
+            <div class="chip"><div class="chip-inner"></div><div class="chip-h" style="top:33%"></div><div class="chip-h" style="top:66%"></div><div class="chip-v" style="left:33%"></div><div class="chip-v" style="left:66%"></div></div>
             <div class="num">${cn}</div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:flex-end">
