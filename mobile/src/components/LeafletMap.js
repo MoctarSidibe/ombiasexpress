@@ -47,7 +47,8 @@ const LEAFLET_HTML = `<!DOCTYPE html>
 
   /* Bigger zoom buttons for touch, clear of bottom panels */
   .leaflet-control-zoom a { width:36px !important; height:36px !important; line-height:36px !important; font-size:20px !important; }
-  .leaflet-bottom.leaflet-right { margin-bottom: 220px; margin-right: 8px; }
+  .leaflet-bottom.leaflet-right { margin-bottom: 8px; margin-right: 8px; }
+  .leaflet-bottom.leaflet-left  { margin-bottom: 8px; margin-left: 8px; }
 </style>
 </head>
 <body>
@@ -102,8 +103,9 @@ function initMap(region) {
   var lat = region.latitude;
   var lng = region.longitude;
   var zoom = latDeltaToZoom(region.latitudeDelta || 0.05);
+  var zoomPos = region.zoomPosition || 'bottomright';
   map = L.map('map', { zoomControl: false, attributionControl: false }).setView([lat, lng], zoom);
-  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  L.control.zoom({ position: zoomPos }).addTo(map);
   buildLayers();
   streetLayer.addTo(map);
   map.on('click', function(e) {
@@ -238,6 +240,7 @@ const LeafletMap = forwardRef(function LeafletMap(props, ref) {
         showsUserLocation,
         userLocation,
         mapType = 'standard',
+        zoomPosition = 'bottomright',
         markers = [],
         polylines = [],
         onPress,
@@ -326,7 +329,7 @@ const LeafletMap = forwardRef(function LeafletMap(props, ref) {
 
     // ── init map once WebView loads ───────────────────────────────────────────
     function onLoad() {
-        const region = initialRegion || { latitude: 0.4162, longitude: 9.4673, latitudeDelta: 0.05, longitudeDelta: 0.05 };
+        const region = { ...(initialRegion || { latitude: 0.4162, longitude: 9.4673, latitudeDelta: 0.05, longitudeDelta: 0.05 }), zoomPosition };
         inject({ type: 'init', region });
     }
 

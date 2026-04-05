@@ -382,6 +382,7 @@ const RideRequestScreen = ({ navigation }) => {
                 showsUserLocation
                 userLocation={currentLocation}
                 mapType={mapType}
+                zoomPosition="topright"
                 markers={[
                     ...(pickupCoords  ? [{ id: 'pickup',  coordinate: pickupCoords,  type: 'pickup'  }] : []),
                     ...(dropoffCoords ? [{ id: 'dropoff', coordinate: dropoffCoords, type: 'dropoff' }] : []),

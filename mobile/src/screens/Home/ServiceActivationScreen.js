@@ -268,6 +268,8 @@ const styles = StyleSheet.create({
         color: '#1C2E4A',
         textAlign: 'center',
         marginBottom: 8,
+        flexWrap: 'wrap',
+        alignSelf: 'stretch',
     },
     serviceDesc: {
         fontSize: 14,
