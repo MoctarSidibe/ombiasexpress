@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
+import LeafletMap from '../../components/LeafletMap';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, BORDER_RADIUS, FONT_SIZES, SHADOWS } from '../../constants/colors';
 import socketService from '../../services/socket.service';
@@ -154,76 +154,25 @@ const RideTrackingScreen = ({ route, navigation }) => {
 
     return (
         <View style={styles.container}>
-            {/* Map - no external API; straight-line polylines only */}
-            <MapView
+            {/* Map - Leaflet/OSM, no API key required */}
+            <LeafletMap
                 ref={mapRef}
                 style={styles.map}
                 initialRegion={
                     pickupCoords
-                        ? {
-                            latitude: pickupCoords.latitude,
-                            longitude: pickupCoords.longitude,
-                            latitudeDelta: 0.05,
-                            longitudeDelta: 0.05,
-                        }
+                        ? { latitude: pickupCoords.latitude, longitude: pickupCoords.longitude, latitudeDelta: 0.05, longitudeDelta: 0.05 }
                         : { latitude: 0.4162, longitude: 9.4673, latitudeDelta: 0.08, longitudeDelta: 0.08 }
                 }
-                showsUserLocation
-                showsMyLocationButton
-                provider={PROVIDER_DEFAULT}
-            >
-                {/* Polyline: driver -> pickup (dashed when en route) */}
-                {displayDriverLocation && pickupCoords && (
-                    <Polyline
-                        coordinates={[displayDriverLocation, pickupCoords]}
-                        strokeColor={COLORS.primary}
-                        strokeWidth={3}
-                        lineDashPattern={[6, 8]}
-                    />
-                )}
-                {/* Polyline: pickup -> dropoff (full route) */}
-                {pickupCoords && dropoffCoords && (
-                    <Polyline
-                        coordinates={[pickupCoords, dropoffCoords]}
-                        strokeColor={COLORS.accent}
-                        strokeWidth={4}
-                    />
-                )}
-
-                {/* Driver Marker with pulse animation */}
-                {displayDriverLocation && (
-                    <Marker coordinate={displayDriverLocation} anchor={{ x: 0.5, y: 0.5 }}>
-                        <View style={styles.driverMarkerContainer}>
-                            <Animated.View
-                                style={[
-                                    styles.driverPulse,
-                                    { transform: [{ scale: pulseAnim }] },
-                                ]}
-                            />
-                            <View style={styles.driverMarker}>
-                                <Ionicons name="car" size={24} color={COLORS.secondary} />
-                            </View>
-                        </View>
-                    </Marker>
-                )}
-
-                {/* Pickup Marker */}
-                {pickupCoords && (
-                    <Marker coordinate={pickupCoords}>
-                        <View style={styles.pickupMarker}>
-                            <Ionicons name="ellipse" size={20} color={COLORS.primary} />
-                        </View>
-                    </Marker>
-                )}
-                {/* Dropoff Marker */}
-                {dropoffCoords && (
-                    <Marker coordinate={dropoffCoords}>
-                        <View style={styles.dropoffMarker}>
-                            <Ionicons name="location" size={28} color={COLORS.accent} />
-                        </View>
-                    </Marker>
-                )}
-            </MapView>
+                markers={[
+                    ...(displayDriverLocation ? [{ id: 'driver', coordinate: displayDriverLocation, type: 'driver' }] : []),
+                    ...(pickupCoords  ? [{ id: 'pickup',  coordinate: pickupCoords,  type: 'pickup'  }] : []),
+                    ...(dropoffCoords ? [{ id: 'dropoff', coordinate: dropoffCoords, type: 'dropoff' }] : []),
+                ]}
+                polylines={[
+                    ...(displayDriverLocation && pickupCoords ? [{ id: 'toPickup', coordinates: [displayDriverLocation, pickupCoords], color: COLORS.primary, width: 3, dashed: true }] : []),
+                    ...(pickupCoords && dropoffCoords ? [{ id: 'route', coordinates: [pickupCoords, dropoffCoords], color: COLORS.accent, width: 4 }] : []),
+                ]}
+            />
 
             {/* Status Card */}
             <View style={styles.statusCard}>

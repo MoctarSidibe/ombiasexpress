@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker } from 'react-native-maps';
+import LeafletMap from '../../components/LeafletMap';
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from '../../constants/colors';
 import { rentalAPI } from '../../services/api.service';
 
@@ -42,7 +42,7 @@ const RegisterRentalCarScreen = ({ navigation }) => {
         }));
     };
 
-    const handleMapPress = (e) => setPickupLocation(e.nativeEvent.coordinate);
+    const handleMapPress = ({ latitude, longitude }) => setPickupLocation({ latitude, longitude });
 
     const validate = () => {
         const { make, model, year, color, license_plate, price_per_hour, price_per_day, pickup_address, available_from, available_until } = form;
@@ -155,9 +155,12 @@ const RegisterRentalCarScreen = ({ navigation }) => {
                 </View>
                 <Text style={styles.mapHint}>Tap on the map to set the exact pickup pin</Text>
                 <View style={styles.mapContainer}>
-                    <MapView style={styles.map} initialRegion={{ ...pickupLocation, latitudeDelta: 0.01, longitudeDelta: 0.01 }} onPress={handleMapPress}>
-                        <Marker coordinate={pickupLocation} pinColor={COLORS.info} />
-                    </MapView>
+                    <LeafletMap
+                        style={styles.map}
+                        initialRegion={{ ...pickupLocation, latitudeDelta: 0.01, longitudeDelta: 0.01 }}
+                        markers={[{ id: 'pickup', coordinate: pickupLocation, type: 'car' }]}
+                        onPress={handleMapPress}
+                    />
                 </View>
                 <View style={styles.field}>
                     <Text style={styles.label}>Pickup Instructions (optional)</Text>

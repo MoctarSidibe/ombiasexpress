@@ -8,7 +8,7 @@ import {
     Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import LeafletMap from '../../components/LeafletMap';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, BORDER_RADIUS, FONT_SIZES, SHADOWS } from '../../constants/colors';
 import { rideAPI } from '../../services/api.service';
@@ -196,34 +196,19 @@ const OngoingRideScreen = ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            <MapView
+            <LeafletMap
                 ref={mapRef}
                 style={styles.map}
                 initialRegion={pickup
                     ? { ...pickup, latitudeDelta: 0.02, longitudeDelta: 0.02 }
                     : { latitude: 0.4162, longitude: 9.4673, latitudeDelta: 0.08, longitudeDelta: 0.08 }
                 }
-                showsUserLocation
-                showsMyLocationButton
-            >
-                {pickup && (
-                    <Marker coordinate={pickup} title="Départ">
-                        <View style={styles.markerPickup}>
-                            <Ionicons name="ellipse" size={20} color={COLORS.primary} />
-                        </View>
-                    </Marker>
-                )}
-                {dropoff && (
-                    <Marker coordinate={dropoff} title="Arrivée">
-                        <View style={styles.markerDropoff}>
-                            <Ionicons name="location" size={36} color={COLORS.accent} />
-                        </View>
-                    </Marker>
-                )}
-                {pickup && dropoff && (
-                    <Polyline coordinates={[pickup, dropoff]} strokeColor={COLORS.primary} strokeWidth={4} />
-                )}
-            </MapView>
+                markers={[
+                    ...(pickup  ? [{ id: 'pickup',  coordinate: pickup,  type: 'pickup',  title: 'Départ'  }] : []),
+                    ...(dropoff ? [{ id: 'dropoff', coordinate: dropoff, type: 'dropoff', title: 'Arrivée' }] : []),
+                ]}
+                polylines={pickup && dropoff ? [{ id: 'route', coordinates: [pickup, dropoff], color: COLORS.primary, width: 4 }] : []}
+            />
 
             <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                 <Ionicons name="arrow-back" size={24} color={COLORS.primary} />

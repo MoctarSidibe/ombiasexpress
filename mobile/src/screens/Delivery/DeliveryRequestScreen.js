@@ -4,7 +4,7 @@ import {
     ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView,
     Platform, Dimensions, Keyboard, Animated,
 } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import LeafletMap from '../../components/LeafletMap';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { deliveryAPI } from '../../services/api.service';
@@ -316,24 +316,23 @@ export default function DeliveryRequestScreen({ navigation }) {
     return (
         <View style={styles.container}>
             {/* ── Full screen map ── */}
-            <MapView
+            <LeafletMap
                 ref={mapRef}
                 style={StyleSheet.absoluteFillObject}
-                mapType={mapType}
                 initialRegion={mapRegion}
                 showsUserLocation
-                showsMyLocationButton={false}
-                compassOffset={{ x: -14, y: 108 }}
-                onPress={async (e) => {
-                    const { latitude, longitude } = e.nativeEvent.coordinate;
+                userLocation={currentLocation}
+                markers={[
+                    ...(pickupCoords  ? [{ id: 'pickup',  coordinate: pickupCoords,  type: 'pickup'  }] : []),
+                    ...(dropoffCoords ? [{ id: 'dropoff', coordinate: dropoffCoords, type: 'dropoff' }] : []),
+                ]}
+                polylines={routeCoords.length > 1 ? [{ id: 'route', coordinates: routeCoords, color: BROWN, width: 3, dashed: true }] : []}
+                onPress={async ({ latitude, longitude }) => {
                     const coords = { latitude, longitude };
-                    // Smart field detection: use active field, else fill whichever is empty
                     const field = activeField || (!pickupCoords ? 'pickup' : 'dropoff');
                     setSuggestions([]);
                     Keyboard.dismiss();
-                    mapRef.current?.animateToRegion(
-                        { ...coords, latitudeDelta: 0.015, longitudeDelta: 0.015 }, 400
-                    );
+                    mapRef.current?.animateToRegion({ ...coords, latitudeDelta: 0.015, longitudeDelta: 0.015 });
                     let address = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
                     try {
                         const r = await fetch(
@@ -350,25 +349,7 @@ export default function DeliveryRequestScreen({ navigation }) {
                     }
                     setActiveField(null);
                 }}
-            >
-                {pickupCoords && (
-                    <Marker coordinate={pickupCoords} anchor={{ x: 0.5, y: 1 }}>
-                        <View style={styles.markerPickup}>
-                            <Ionicons name="location" size={22} color="#fff" />
-                        </View>
-                    </Marker>
-                )}
-                {dropoffCoords && (
-                    <Marker coordinate={dropoffCoords} anchor={{ x: 0.5, y: 1 }}>
-                        <View style={styles.markerDropoff}>
-                            <Ionicons name="flag" size={18} color="#fff" />
-                        </View>
-                    </Marker>
-                )}
-                {routeCoords.length > 1 && (
-                    <Polyline coordinates={routeCoords} strokeColor={BROWN} strokeWidth={3} lineDashPattern={[1]} />
-                )}
-            </MapView>
+            />
 
             {/* ── Back + title overlay ── */}
             <SafeAreaView style={styles.backOverlay} edges={['top']}>

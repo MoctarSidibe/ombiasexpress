@@ -16,7 +16,7 @@ import {
     Modal,
     KeyboardAvoidingView,
 } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import LeafletMap from '../../components/LeafletMap';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, BORDER_RADIUS, FONT_SIZES, SHADOWS } from '../../constants/colors';
@@ -375,20 +375,21 @@ const RideRequestScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             {/* Full-screen map */}
-            <MapView
+            <LeafletMap
                 ref={mapRef}
                 style={StyleSheet.absoluteFillObject}
-                mapType={mapType}
                 initialRegion={currentLocation || { latitude: 0.4162, longitude: 9.4673, latitudeDelta: 0.08, longitudeDelta: 0.08 }}
                 showsUserLocation
-                showsMyLocationButton={false}
-                compassOffset={{ x: -14, y: 108 }}
-                onPress={async (e) => {
-                    const { latitude, longitude } = e.nativeEvent.coordinate;
+                userLocation={currentLocation}
+                markers={[
+                    ...(pickupCoords  ? [{ id: 'pickup',  coordinate: pickupCoords,  type: 'pickup'  }] : []),
+                    ...(dropoffCoords ? [{ id: 'dropoff', coordinate: dropoffCoords, type: 'dropoff' }] : []),
+                ]}
+                polylines={routeCoordinates.length > 1 ? [{ id: 'route', coordinates: routeCoordinates, color: COLORS.primary, width: 4 }] : []}
+                onPress={async ({ latitude, longitude }) => {
                     const coords = { latitude, longitude };
                     setSuggestions([]);
                     Keyboard.dismiss();
-                    // Reverse geocode
                     let address = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
                     try {
                         const r = await fetch(
@@ -407,29 +408,7 @@ const RideRequestScreen = ({ navigation }) => {
                     }
                     setActiveField(null);
                 }}
-            >
-                {pickupCoords && (
-                    <Marker coordinate={pickupCoords} anchor={{ x: 0.5, y: 0.5 }}>
-                        <View style={styles.markerPickup}>
-                            <Ionicons name="ellipse" size={16} color={COLORS.primary} />
-                        </View>
-                    </Marker>
-                )}
-                {dropoffCoords && (
-                    <Marker coordinate={dropoffCoords} anchor={{ x: 0.5, y: 1 }}>
-                        <View style={styles.markerDropoff}>
-                            <Ionicons name="location" size={32} color={COLORS.primary} />
-                        </View>
-                    </Marker>
-                )}
-                {routeCoordinates.length > 1 && (
-                    <Polyline
-                        coordinates={routeCoordinates}
-                        strokeColor={COLORS.primary}
-                        strokeWidth={4}
-                    />
-                )}
-            </MapView>
+            />
 
             {/* Route loading spinner */}
             {loadingRoute && (

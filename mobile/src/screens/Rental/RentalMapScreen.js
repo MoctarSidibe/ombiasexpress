@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker } from 'react-native-maps';
+import LeafletMap from '../../components/LeafletMap';
 import { SHADOWS } from '../../constants/colors';
 import { rentalAPI } from '../../services/api.service';
 import socketService from '../../services/socket.service';
@@ -39,8 +39,7 @@ const RentalMapScreen = ({ navigation }) => {
         } catch (_) {} finally { setLoading(false); }
     }, [filters, userLocation, searchCenter]);
 
-    const handleMapPress = useCallback((e) => {
-        const { latitude, longitude } = e.nativeEvent.coordinate;
+    const handleMapPress = useCallback(({ latitude, longitude }) => {
         setSearchCenter({ latitude, longitude });
         setSelectedCar(null);
         setPinHint(false);
@@ -144,35 +143,23 @@ const RentalMapScreen = ({ navigation }) => {
 
             {/* ── Map ── */}
             <View style={styles.mapContainer}>
-                <MapView
+                <LeafletMap
                     ref={mapRef}
                     style={styles.map}
-                    mapType={mapType}
                     initialRegion={initialRegion}
                     showsUserLocation
-                    showsMyLocationButton={false}
-                    compassOffset={{ x: -14, y: 108 }}
+                    userLocation={userLocation}
+                    markers={[
+                        ...(searchCenter ? [{ id: 'search', coordinate: searchCenter, type: 'pin', title: 'Zone de recherche' }] : []),
+                        ...cars.map(car => ({
+                            id: `car-${car.id}`,
+                            coordinate: { latitude: parseFloat(car.pickup_lat), longitude: parseFloat(car.pickup_lng) },
+                            type: 'car',
+                            title: `${car.make} ${car.model}`,
+                        })),
+                    ]}
                     onPress={handleMapPress}
-                >
-                    {searchCenter && (
-                        <Marker coordinate={searchCenter} anchor={{ x: 0.5, y: 1 }}>
-                            <View style={styles.searchPinMarker}>
-                                <Ionicons name="search" size={14} color="#fff" />
-                            </View>
-                        </Marker>
-                    )}
-                    {cars.map(car => (
-                        <Marker
-                            key={car.id}
-                            coordinate={{ latitude: parseFloat(car.pickup_lat), longitude: parseFloat(car.pickup_lng) }}
-                            onPress={() => setSelectedCar(car)}
-                        >
-                            <View style={styles.rentalMarker}>
-                                <Ionicons name="car" size={18} color="#fff" />
-                            </View>
-                        </Marker>
-                    ))}
-                </MapView>
+                />
 
                 {loading && (
                     <View style={styles.loadingOverlay}>

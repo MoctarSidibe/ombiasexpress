@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Marker } from 'react-native-maps';
+import LeafletMap from '../../components/LeafletMap';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import locationService from '../../services/location.service';
@@ -41,23 +41,13 @@ const RiderHomeScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* Map */}
-            <MapView
+            <LeafletMap
                 style={styles.map}
-                mapType={mapType}
                 initialRegion={location}
                 showsUserLocation
-                showsMyLocationButton
-            >
-                {location && (
-                    <Marker
-                        coordinate={{
-                            latitude: location.latitude,
-                            longitude: location.longitude
-                        }}
-                        title="You are here"
-                    />
-                )}
-            </MapView>
+                userLocation={location}
+                markers={location ? [{ id: 'user', coordinate: { latitude: location.latitude, longitude: location.longitude }, type: 'user', title: 'You are here' }] : []}
+            />
 
             {/* Top-left: map type toggle */}
             <TouchableOpacity

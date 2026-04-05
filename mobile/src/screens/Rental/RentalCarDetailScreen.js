@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker } from 'react-native-maps';
+import LeafletMap from '../../components/LeafletMap';
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, SHADOWS } from '../../constants/colors';
 import { rentalAPI } from '../../services/api.service';
 
@@ -83,15 +83,11 @@ const RentalCarDetailScreen = ({ route, navigation }) => {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Pickup Location</Text>
                     <View style={styles.mapSmall}>
-                        <MapView
+                        <LeafletMap
                             style={{ flex: 1 }}
                             initialRegion={{ latitude: parseFloat(car.pickup_lat), longitude: parseFloat(car.pickup_lng), latitudeDelta: 0.005, longitudeDelta: 0.005 }}
-                            scrollEnabled={false} zoomEnabled={false}
-                        >
-                            <Marker coordinate={{ latitude: parseFloat(car.pickup_lat), longitude: parseFloat(car.pickup_lng) }}>
-                                <View style={styles.mapMarker}><Ionicons name="car" size={16} color={COLORS.secondary} /></View>
-                            </Marker>
-                        </MapView>
+                            markers={[{ id: 'car', coordinate: { latitude: parseFloat(car.pickup_lat), longitude: parseFloat(car.pickup_lng) }, type: 'car' }]}
+                        />
                     </View>
                     <Text style={styles.address}>{car.pickup_address}</Text>
                     {car.pickup_instructions && <Text style={styles.instructions}>{car.pickup_instructions}</Text>}

@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker } from 'react-native-maps';
+import LeafletMap from '../../components/LeafletMap';
 import { useAuth } from '../../context/AuthContext';
 import socketService from '../../services/socket.service';
 import locationService from '../../services/location.service';
@@ -310,26 +310,17 @@ export default function DriverHomeScreen({ navigation }) {
     const MapTab = () => (
         <View style={{ flex: 1 }}>
             <View style={styles.mapWrap}>
-                <MapView
+                <LeafletMap
                     ref={mapRef}
                     style={styles.map}
-                    mapType={mapType}
                     initialRegion={location
                         ? { latitude: location.latitude, longitude: location.longitude, latitudeDelta: 0.015, longitudeDelta: 0.015 }
                         : { latitude: 0.4162, longitude: 9.4673, latitudeDelta: 0.08, longitudeDelta: 0.08 }
                     }
                     showsUserLocation
-                    showsMyLocationButton={false}
-                    compassOffset={{ x: -14, y: 108 }}
-                >
-                    {location && (
-                        <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }}>
-                            <View style={[styles.driverMarker, isOnline && styles.driverMarkerOnline]}>
-                                <Ionicons name="car-sport" size={16} color="#fff" />
-                            </View>
-                        </Marker>
-                    )}
-                </MapView>
+                    userLocation={location}
+                    markers={location ? [{ id: 'driver', coordinate: { latitude: location.latitude, longitude: location.longitude }, type: 'driver' }] : []}
+                />
 
                 {/* Map buttons */}
                 <View style={styles.mapBtns}>
