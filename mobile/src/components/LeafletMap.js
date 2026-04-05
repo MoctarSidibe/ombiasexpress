@@ -66,9 +66,10 @@ function initMap(region) {
   var lng = region.longitude || 0;
   var zoom = latDeltaToZoom(region.latitudeDelta || 0.05);
   map = L.map('map', { zoomControl: true, attributionControl: false }).setView([lat, lng], zoom);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // CartoDB Voyager — free, no API key, reliable in Android WebViews (no 403)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     maxZoom: 19,
-    subdomains: ['a','b','c']
+    subdomains: ['a','b','c','d'],
   }).addTo(map);
   map.on('click', function(e) {
     send('press', { latitude: e.latlng.lat, longitude: e.latlng.lng });

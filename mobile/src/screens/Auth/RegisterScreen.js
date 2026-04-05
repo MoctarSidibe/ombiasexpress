@@ -355,14 +355,14 @@ const styles = StyleSheet.create({
         color: '#FFA726',
     },
     miniLogoWrap: {
-        width: width * 0.22,
-        height: width * 0.10,
+        width: width * 0.38,
+        height: width * 0.18,
         alignItems: 'center',
         justifyContent: 'center',
     },
     miniLogo: {
-        width: width * 0.22,
-        height: width * 0.10,
+        width: width * 0.38,
+        height: width * 0.18,
     },
 
     // ── Form ──
