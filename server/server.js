@@ -117,13 +117,13 @@ const swaggerHeaders = (req, res, next) => {
         "default-src 'self'; " +
         "script-src 'self' 'unsafe-inline'; " +
         "style-src 'self' 'unsafe-inline'; " +
-        "img-src 'self' data: https: blob: http://37.60.240.199:3001; " +
+        "img-src 'self' data: https: blob:; " +
         "connect-src 'self';"
     );
     res.removeHeader('Strict-Transport-Security');
     next();
 };
-const LOGO_URL = 'http://37.60.240.199:3001/logo.png';
+const LOGO_URL = 'http://37.60.240.199:5001/uploads/logo.png';
 const swaggerUiOpts = {
     customSiteTitle: 'Ombia Express — API Docs',
     customCss: `
