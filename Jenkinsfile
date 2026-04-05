@@ -8,6 +8,12 @@ pipeline {
         EXPO_PUBLIC_SOCKET_URL = 'http://37.60.240.199:5001'
         VITE_API_URL           = 'http://37.60.240.199:5001/api'
         ADMIN_DIST_DIR         = '/var/www/ombiaexpress/admin/dist'
+        // Fix: NODE_ENV requis par expo-constants, évite l'avertissement et les échecs intermittents
+        NODE_ENV               = 'production'
+        // Fix: limite mémoire JVM pour éviter les OOM lors du build Gradle
+        GRADLE_OPTS            = '-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError'
+        // Fix: Metro bundler — force la sortie propre après le bundling
+        EXPO_NO_TELEMETRY      = '1'
     }
 
     triggers {
@@ -70,7 +76,15 @@ pipeline {
         stage('Build Release APK') {
             steps {
                 dir('mobile/android') {
-                    sh './gradlew assembleRelease --no-daemon -Dorg.jenkinsci.plugins.durabletask.BourneShellScript.HEARTBEAT_CHECK_INTERVAL=86400'
+                    sh '''
+                        ./gradlew assembleRelease \
+                            --no-daemon \
+                            --max-workers=2 \
+                            --warning-mode none \
+                            -Dorg.jenkinsci.plugins.durabletask.BourneShellScript.HEARTBEAT_CHECK_INTERVAL=86400 \
+                            -Dkotlin.incremental=false \
+                            -Dkotlin.daemon.jvm.options="-Xmx2g"
+                    '''
                 }
             }
         }
@@ -87,6 +101,9 @@ pipeline {
         }
         failure {
             echo 'Build failed — check the console output above.'
+        }
+        unstable {
+            echo 'Build instable — deploy admin a échoué mais APK est prêt.'
         }
     }
 }
