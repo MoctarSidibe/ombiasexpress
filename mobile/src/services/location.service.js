@@ -35,8 +35,22 @@ class LocationService {
     // Get current location once
     getCurrentLocation = async () => {
         try {
+            // Try last known position first (instant, no GPS wait)
+            const last = await Location.getLastKnownPositionAsync();
+            if (last) {
+                this.currentLocation = {
+                    latitude: last.coords.latitude,
+                    longitude: last.coords.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01
+                };
+            }
+
+            // Then get accurate position (may take a few seconds)
             const location = await Location.getCurrentPositionAsync({
-                accuracy: Location.Accuracy.High
+                accuracy: Location.Accuracy.Balanced, // less strict = faster, works indoors
+                timeInterval: 5000,
+                mayShowUserSettingsDialog: true,
             });
 
             this.currentLocation = {
@@ -48,6 +62,8 @@ class LocationService {
 
             return this.currentLocation;
         } catch (error) {
+            // Return last known if accurate fix failed
+            if (this.currentLocation) return this.currentLocation;
             throw error;
         }
     };
