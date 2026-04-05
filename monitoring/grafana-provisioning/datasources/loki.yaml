@@ -9,7 +9,3 @@ datasources:
     editable: true
     jsonData:
       maxLines: 5000
-      derivedFields:
-        - name: TraceID
-          matcherRegex: "traceId=(\w+)"
-          url: ""
