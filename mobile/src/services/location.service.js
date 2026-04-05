@@ -15,11 +15,12 @@ class LocationService {
                 throw new Error('Foreground location permission not granted');
             }
 
-            const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
-
-            if (backgroundStatus !== 'granted') {
-                // Background permission optional for basic tracking
-            }
+            // Background permission is optional — skip if API unavailable
+            let backgroundStatus = 'denied';
+            try {
+                const bg = await Location.requestBackgroundPermissionsAsync();
+                backgroundStatus = bg.status;
+            } catch (_) {}
 
             return {
                 foreground: foregroundStatus === 'granted',

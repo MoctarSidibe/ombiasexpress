@@ -10,6 +10,7 @@ Sentry.init({
 
 import React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, ScrollView, Text } from 'react-native';
 import { AuthProvider } from './src/context/AuthContext';
@@ -51,12 +52,14 @@ function App() {
     return (
         <ErrorBoundary>
             <GestureHandlerRootView style={styles.container}>
-                <LanguageProvider>
-                    <AuthProvider>
-                        <AppNavigator />
-                        <StatusBar style="auto" />
-                    </AuthProvider>
-                </LanguageProvider>
+                <SafeAreaProvider>
+                    <LanguageProvider>
+                        <AuthProvider>
+                            <AppNavigator />
+                            <StatusBar style="auto" />
+                        </AuthProvider>
+                    </LanguageProvider>
+                </SafeAreaProvider>
             </GestureHandlerRootView>
         </ErrorBoundary>
     );
