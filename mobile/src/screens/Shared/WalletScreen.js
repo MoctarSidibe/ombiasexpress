@@ -519,30 +519,39 @@ const WalletScreen = ({ navigation, route }) => {
                             : transactions;
                         return (
                             <View>
-                                {/* Filter chips */}
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false}
-                                    contentContainerStyle={styles.txFilterRow}>
-                                    {TX_FILTERS.map(f => {
-                                        const isActive = txFilter === f.key;
-                                        const count = f.sources
-                                            ? transactions.filter(tx => f.sources.includes(tx.source)).length
-                                            : transactions.length;
-                                        return (
-                                            <TouchableOpacity key={f.key}
-                                                style={[styles.txFilterChip, isActive && styles.txFilterChipActive]}
-                                                onPress={() => setTxFilter(f.key)}>
-                                                <Text style={[styles.txFilterLabel, isActive && styles.txFilterLabelActive]}>
-                                                    {f.label}
-                                                </Text>
-                                                {count > 0 && (
-                                                    <View style={[styles.txFilterBadge, isActive && styles.txFilterBadgeActive]}>
-                                                        <Text style={[styles.txFilterBadgeText, isActive && { color: '#FFA726' }]}>{count}</Text>
-                                                    </View>
-                                                )}
-                                            </TouchableOpacity>
-                                        );
-                                    })}
-                                </ScrollView>
+                                {/* Filter chips — scrollable carousel */}
+                                <View style={styles.txFilterWrap}>
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={true}
+                                        indicatorStyle="black"
+                                        contentContainerStyle={styles.txFilterRow}>
+                                        {TX_FILTERS.map(f => {
+                                            const isActive = txFilter === f.key;
+                                            const count = f.sources
+                                                ? transactions.filter(tx => f.sources.includes(tx.source)).length
+                                                : transactions.length;
+                                            return (
+                                                <TouchableOpacity key={f.key}
+                                                    style={[styles.txFilterChip, isActive && styles.txFilterChipActive]}
+                                                    onPress={() => setTxFilter(f.key)}>
+                                                    <Text style={[styles.txFilterLabel, isActive && styles.txFilterLabelActive]}>
+                                                        {f.label}
+                                                    </Text>
+                                                    {count > 0 && (
+                                                        <View style={[styles.txFilterBadge, isActive && styles.txFilterBadgeActive]}>
+                                                            <Text style={[styles.txFilterBadgeText, isActive && { color: '#FFA726' }]}>{count}</Text>
+                                                        </View>
+                                                    )}
+                                                </TouchableOpacity>
+                                            );
+                                        })}
+                                        {/* Scroll hint arrow (always last) */}
+                                        <View style={styles.txFilterScrollHint}>
+                                            <Ionicons name="chevron-forward" size={14} color="#FFA726" />
+                                        </View>
+                                    </ScrollView>
+                                    {/* "Glissez" hint label */}
+                                    <Text style={styles.txFilterHintLabel}>glissez →</Text>
+                                </View>
 
                                 {/* Transaction list */}
                                 <View style={styles.txSection}>
@@ -1024,7 +1033,16 @@ const styles = StyleSheet.create({
     cardCTAText: { color: '#fff', fontSize: 14, fontWeight: '800', flex: 1, textAlign: 'center' },
 
     // ── Tx filter chips ───────────────────────────────────────────────────────
-    txFilterRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
+    txFilterWrap: { position: 'relative' },
+    txFilterHintLabel: {
+        position: 'absolute', right: 6, top: -2,
+        fontSize: 9, color: '#FFA726', fontWeight: '700', opacity: 0.75,
+    },
+    txFilterScrollHint: {
+        width: 28, alignItems: 'center', justifyContent: 'center',
+        paddingRight: 4,
+    },
+    txFilterRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 10, paddingBottom: 14, gap: 8 },
     txFilterChip:{
         flexDirection: 'row', alignItems: 'center', gap: 5,
         paddingHorizontal: 13, paddingVertical: 7,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LeafletMap from '../../components/LeafletMap';
@@ -8,6 +8,7 @@ import locationService from '../../services/location.service';
 
 const RiderHomeScreen = ({ navigation }) => {
     const { user } = useAuth();
+    const mapRef = useRef(null);
     const [location, setLocation] = useState(null);
     const [loading, setLoading] = useState(true);
     const [mapType, setMapType] = useState('standard');
@@ -46,6 +47,7 @@ const RiderHomeScreen = ({ navigation }) => {
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* Map */}
             <LeafletMap
+                ref={mapRef}
                 style={styles.map}
                 initialRegion={location}
                 showsUserLocation
@@ -64,6 +66,16 @@ const RiderHomeScreen = ({ navigation }) => {
                     color="#1a1a1a"
                 />
             </TouchableOpacity>
+
+            {/* Top-right: zoom buttons */}
+            <View style={styles.zoomBtns}>
+                <TouchableOpacity style={styles.zoomBtn} onPress={() => mapRef.current?.zoomIn()}>
+                    <Ionicons name="add" size={22} color="#1a1a1a" />
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.zoomBtn, { borderTopWidth: 1, borderTopColor: '#eee' }]} onPress={() => mapRef.current?.zoomOut()}>
+                    <Ionicons name="remove" size={22} color="#1a1a1a" />
+                </TouchableOpacity>
+            </View>
 
             {/* Top-right: switch to Drive mode (visible when user has driver service) */}
             {(user?.active_services?.includes('driver') || user?.role === 'driver') && (
@@ -126,10 +138,29 @@ const styles = StyleSheet.create({
         shadowRadius: 6,
         elevation: 4,
     },
-    modeSwitchButton: {
+    zoomBtns: {
         position: 'absolute',
         top: 16,
         right: 16,
+        borderRadius: 12,
+        overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.18,
+        shadowRadius: 6,
+        elevation: 4,
+    },
+    zoomBtn: {
+        width: 42,
+        height: 42,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    modeSwitchButton: {
+        position: 'absolute',
+        top: 16,
+        right: 70,
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#fff',

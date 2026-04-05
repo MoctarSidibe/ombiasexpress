@@ -379,34 +379,39 @@ export default function RideHistoryScreen() {
                 </Text>
             </View>
 
-            {/* Fixed full-width tab bar — all 5 visible at once */}
-            <View style={styles.tabBarWrap}>
+            {/* Scrollable tab bar — compact pill style */}
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.tabBarWrap}
+                contentContainerStyle={styles.tabBarContent}
+            >
                 {TABS.map(t => {
                     const active = activeTab === t.key;
                     const count  = (rawDataMap[t.key] || []).length;
                     return (
                         <TouchableOpacity
                             key={t.key}
-                            style={[styles.tabChip, active && { borderBottomColor: t.color, borderBottomWidth: 2.5 }]}
+                            style={[
+                                styles.tabChip,
+                                active && { backgroundColor: t.color + '15', borderColor: t.color },
+                            ]}
                             onPress={() => { setActiveTab(t.key); setSubFilter('all'); }}
                             activeOpacity={0.7}
                         >
-                            {/* Icon with coloured background pill when active */}
-                            <View style={[styles.tabIconWrap, active && { backgroundColor: t.color + '1A' }]}>
-                                <Ionicons name={t.icon} size={18} color={active ? t.color : '#B0B8C1'} />
-                                {count > 0 && (
-                                    <View style={[styles.tabBadge, { backgroundColor: active ? t.color : '#D1D5DB' }]}>
-                                        <Text style={styles.tabBadgeText}>{count > 99 ? '99+' : count}</Text>
-                                    </View>
-                                )}
-                            </View>
-                            <Text style={[styles.tabChipLabel, active && { color: t.color, fontWeight: '700' }]}>
+                            <Ionicons name={t.icon} size={15} color={active ? t.color : '#B0B8C1'} />
+                            <Text style={[styles.tabChipLabel, active && { color: t.color, fontWeight: '800' }]}>
                                 {t.label}
                             </Text>
+                            {count > 0 && (
+                                <View style={[styles.tabBadge, { backgroundColor: active ? t.color : '#D1D5DB' }]}>
+                                    <Text style={styles.tabBadgeText}>{count > 99 ? '99+' : count}</Text>
+                                </View>
+                            )}
                         </TouchableOpacity>
                     );
                 })}
-            </View>
+            </ScrollView>
 
             {/* Sub-filter chips */}
             {(SUB_FILTERS[activeTab] || []).length > 1 && (
@@ -477,32 +482,31 @@ const styles = StyleSheet.create({
     subtitle: { fontSize: 12, color: '#9CA3AF' },
     center:   { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-    // ── Fixed full-width tab bar ──────────────────────────────────────────────
+    // ── Scrollable tab bar ────────────────────────────────────────────────────
     tabBarWrap: {
-        flexDirection: 'row',
         backgroundColor: '#fff',
         borderBottomWidth: 1,
         borderBottomColor: '#F0F0F0',
     },
-    tabChip: {
-        flex: 1,
-        alignItems: 'center',
+    tabBarContent: {
+        paddingHorizontal: 12,
         paddingVertical: 10,
-        borderBottomWidth: 2.5,
-        borderBottomColor: 'transparent',
-    },
-    tabIconWrap: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        gap: 8,
+        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 3,
+    },
+    tabChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        paddingHorizontal: 12,
+        paddingVertical: 7,
+        borderRadius: 20,
+        borderWidth: 1.5,
+        borderColor: '#E8EAF0',
+        backgroundColor: '#F8F9FB',
     },
     tabBadge: {
-        position: 'absolute',
-        top: -2,
-        right: -2,
         minWidth: 16,
         height: 16,
         borderRadius: 8,
@@ -511,7 +515,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 3,
     },
     tabBadgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
-    tabChipLabel:  { fontSize: 10, fontWeight: '500', color: '#B0B8C1' },
+    tabChipLabel:  { fontSize: 12, fontWeight: '600', color: '#B0B8C1' },
 
     // ── Sub-filter chips ──────────────────────────────────────────────────────
     subFilterChip: {

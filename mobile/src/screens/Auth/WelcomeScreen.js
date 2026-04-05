@@ -106,14 +106,14 @@ const styles = StyleSheet.create({
     logoSection: {
         alignItems: 'center',
         paddingTop: 10,
-        height: H * 0.15,
+        height: H * 0.20,
         justifyContent: 'center',
     },
     logoWrap: {
-        width: RING * 2, height: RING * 1.4,
+        width: RING * 2.8, height: RING * 2,
         alignItems: 'center', justifyContent: 'center',
     },
-    logo:          { width: W * 0.52, height: W * 0.52 * 0.48 },
+    logo:          { width: W * 0.72, height: W * 0.72 * 0.48 },
     tagline:       { fontSize: 11, color: '#6B7280', marginTop: 4, letterSpacing: 0.3 },
     taglineAccent: { color: '#FFA726', fontWeight: '800' },
 

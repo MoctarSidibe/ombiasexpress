@@ -235,6 +235,16 @@ const RentalMapScreen = ({ navigation }) => {
                     >
                         <Ionicons name="locate" size={18} color={NAVY} />
                     </TouchableOpacity>
+
+                    {/* Zoom in */}
+                    <TouchableOpacity style={styles.locateBtn} onPress={() => mapRef.current?.zoomIn()}>
+                        <Ionicons name="add" size={20} color={NAVY} />
+                    </TouchableOpacity>
+
+                    {/* Zoom out */}
+                    <TouchableOpacity style={styles.locateBtn} onPress={() => mapRef.current?.zoomOut()}>
+                        <Ionicons name="remove" size={20} color={NAVY} />
+                    </TouchableOpacity>
                 </View>
             </View>
 

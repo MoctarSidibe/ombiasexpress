@@ -377,7 +377,7 @@ const AppNavigator = () => {
 
     return (
         <NavigationContainer ref={navRef} onReady={onNavReady}>
-            {isAuthenticated ? <MainStack /> : <GuestStack />}
+            {isAuthenticated ? <MainStack key="auth" /> : <GuestStack key="guest" />}
         </NavigationContainer>
     );
 };

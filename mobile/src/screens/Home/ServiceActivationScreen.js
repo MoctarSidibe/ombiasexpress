@@ -6,7 +6,6 @@ import {
     TouchableOpacity,
     Alert,
     ActivityIndicator,
-    ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -161,7 +160,7 @@ const ServiceActivationScreen = ({ navigation, route }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+            <View style={styles.scroll}>
 
                 {/* Back button */}
                 <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -171,7 +170,7 @@ const ServiceActivationScreen = ({ navigation, route }) => {
                 {/* Service info card */}
                 <View style={[styles.serviceCard, { backgroundColor: config.cardBg }]}>
                     <View style={[styles.iconCircle, { backgroundColor: config.iconColor + '22' }]}>
-                        <Ionicons name={config.icon} size={48} color={config.iconColor} />
+                        <Ionicons name={config.icon} size={44} color={config.iconColor} />
                     </View>
                     <Text style={styles.serviceTitle}>{config.title}</Text>
                     <Text style={styles.serviceDesc}>{config.desc}</Text>
@@ -213,7 +212,7 @@ const ServiceActivationScreen = ({ navigation, route }) => {
 
                 {/* Start / View status button */}
                 {loading ? (
-                    <ActivityIndicator color="#FFA726" style={{ marginVertical: 20 }} />
+                    <ActivityIndicator color="#FFA726" style={{ marginVertical: 16 }} />
                 ) : (
                     <TouchableOpacity style={styles.activateBtn} onPress={handleStart}>
                         <Ionicons
@@ -231,23 +230,23 @@ const ServiceActivationScreen = ({ navigation, route }) => {
                     <Text style={styles.cancelBtnText}>Annuler</Text>
                 </TouchableOpacity>
 
-            </ScrollView>
+            </View>
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
-    scroll:    { padding: 20, paddingTop: 12 },
+    scroll:    { flex: 1, padding: 16, paddingTop: 10 },
 
-    backButton: { marginBottom: 20 },
+    backButton: { marginBottom: 12 },
 
     /* ── Service card ── */
     serviceCard: {
-        borderRadius: 20,
-        padding: 28,
+        borderRadius: 18,
+        padding: 20,
         alignItems: 'center',
-        marginBottom: 28,
+        marginBottom: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.06,
@@ -255,38 +254,38 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     iconCircle: {
-        width: 90,
-        height: 90,
-        borderRadius: 45,
+        width: 74,
+        height: 74,
+        borderRadius: 37,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 18,
+        marginBottom: 12,
     },
     serviceTitle: {
-        fontSize: 22,
+        fontSize: 19,
         fontWeight: '800',
         color: '#1C2E4A',
         textAlign: 'center',
-        marginBottom: 8,
+        marginBottom: 6,
         flexWrap: 'wrap',
         alignSelf: 'stretch',
     },
     serviceDesc: {
-        fontSize: 14,
+        fontSize: 13,
         color: '#888',
         textAlign: 'center',
-        lineHeight: 20,
+        lineHeight: 18,
     },
 
     /* ── Benefits ── */
     benefitsSection: {
-        marginBottom: 20,
+        marginBottom: 12,
     },
     benefitsTitle: {
-        fontSize: 14,
+        fontSize: 11,
         fontWeight: '700',
         color: '#1C2E4A',
-        marginBottom: 14,
+        marginBottom: 10,
         opacity: 0.7,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
@@ -297,25 +296,25 @@ const styles = StyleSheet.create({
     benefitRow: {
         flexDirection: 'row',
         alignItems: 'flex-start',
-        marginBottom: 12,
+        marginBottom: 8,
     },
     benefitDot: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
+        width: 20,
+        height: 20,
+        borderRadius: 10,
         backgroundColor: '#FFA726',
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 12,
+        marginRight: 10,
         marginTop: 1,
         flexShrink: 0,
     },
     benefitText: {
         flex: 1,
-        fontSize: 15,
+        fontSize: 13,
         color: '#333',
         fontWeight: '500',
-        lineHeight: 22,
+        lineHeight: 19,
     },
 
     /* ── Notice ── */
@@ -324,14 +323,15 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         backgroundColor: '#EEF8FF',
         borderRadius: 12,
-        padding: 14,
-        marginBottom: 28,
+        padding: 12,
+        marginBottom: 16,
+        gap: 8,
     },
     noticeText: {
         flex: 1,
-        fontSize: 13,
+        fontSize: 12,
         color: '#4DB6E8',
-        lineHeight: 18,
+        lineHeight: 17,
     },
 
     /* ── Buttons ── */
@@ -340,9 +340,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#FFA726',
-        paddingVertical: 16,
+        paddingVertical: 14,
         borderRadius: 14,
-        marginBottom: 12,
+        marginBottom: 8,
         shadowColor: '#FFA726',
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.35,
@@ -352,18 +352,18 @@ const styles = StyleSheet.create({
     activateBtnDisabled: { opacity: 0.6 },
     activateBtnText: {
         color: '#fff',
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: '700',
         letterSpacing: 0.4,
     },
     cancelBtn: {
         alignItems: 'center',
-        paddingVertical: 14,
-        marginBottom: 20,
+        paddingVertical: 10,
+        marginBottom: 8,
     },
     cancelBtnText: {
         color: '#aaa',
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: '500',
     },
 

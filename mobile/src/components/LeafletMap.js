@@ -45,10 +45,8 @@ const LEAFLET_HTML = `<!DOCTYPE html>
   .mk-user    { width:18px;height:18px;border-radius:50%;background:#2196F3;border:3px solid rgba(33,150,243,.4);box-shadow:0 0 0 6px rgba(33,150,243,.15); }
   .mk-default { width:20px;height:20px;border-radius:50%;background:#607D8B;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4); }
 
-  /* Bigger zoom buttons for touch, clear of bottom panels */
-  .leaflet-control-zoom a { width:36px !important; height:36px !important; line-height:36px !important; font-size:20px !important; }
-  .leaflet-bottom.leaflet-right { margin-bottom: 8px; margin-right: 8px; }
-  .leaflet-bottom.leaflet-left  { margin-bottom: 8px; margin-left: 8px; }
+  /* Hide zoom controls (managed by React Native buttons) */
+  .leaflet-control-zoom { display: none !important; }
 </style>
 </head>
 <body>
@@ -103,9 +101,7 @@ function initMap(region) {
   var lat = region.latitude;
   var lng = region.longitude;
   var zoom = latDeltaToZoom(region.latitudeDelta || 0.05);
-  var zoomPos = region.zoomPosition || 'bottomright';
   map = L.map('map', { zoomControl: false, attributionControl: false }).setView([lat, lng], zoom);
-  L.control.zoom({ position: zoomPos }).addTo(map);
   buildLayers();
   streetLayer.addTo(map);
   map.on('click', function(e) {
@@ -225,6 +221,8 @@ function handleMessage(e) {
     else if (msg.type === 'fitBounds') fitBounds(msg.coords, msg.padding);
     else if (msg.type === 'animateTo') animateTo(msg.region);
     else if (msg.type === 'setCenter') { if(map) map.setView([msg.lat, msg.lng], msg.zoom || map.getZoom()); }
+    else if (msg.type === 'zoomIn')    { if(map) map.zoomIn(); }
+    else if (msg.type === 'zoomOut')   { if(map) map.zoomOut(); }
     else if (msg.type === 'setMapType') setMapType(msg.mapType);
   } catch(err) {}
 }
@@ -240,7 +238,6 @@ const LeafletMap = forwardRef(function LeafletMap(props, ref) {
         showsUserLocation,
         userLocation,
         mapType = 'standard',
-        zoomPosition = 'bottomright',
         markers = [],
         polylines = [],
         onPress,
@@ -277,6 +274,8 @@ const LeafletMap = forwardRef(function LeafletMap(props, ref) {
         setCenter(latitude, longitude, zoom) {
             inject({ type: 'setCenter', lat: latitude, lng: longitude, zoom });
         },
+        zoomIn()  { inject({ type: 'zoomIn' }); },
+        zoomOut() { inject({ type: 'zoomOut' }); },
     }));
 
     // ── sync map type ─────────────────────────────────────────────────────────
@@ -329,7 +328,7 @@ const LeafletMap = forwardRef(function LeafletMap(props, ref) {
 
     // ── init map once WebView loads ───────────────────────────────────────────
     function onLoad() {
-        const region = { ...(initialRegion || { latitude: 0.4162, longitude: 9.4673, latitudeDelta: 0.05, longitudeDelta: 0.05 }), zoomPosition };
+        const region = initialRegion || { latitude: 0.4162, longitude: 9.4673, latitudeDelta: 0.05, longitudeDelta: 0.05 };
         inject({ type: 'init', region });
     }
 

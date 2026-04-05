@@ -170,6 +170,9 @@ const ProfileScreen = ({ navigation }) => {
                         setLoggingOut(true);
                         try {
                             await logout();
+                            // Navigate to Hub tab before auth state switches
+                            // (AppNavigator key-remount handles the full reset)
+                            navigation.reset({ index: 0, routes: [{ name: 'HubTabs' }] });
                         } catch (_) {
                             // logout failed — force clear anyway
                         } finally {

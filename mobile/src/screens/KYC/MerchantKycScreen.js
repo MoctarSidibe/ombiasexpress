@@ -241,7 +241,7 @@ export default function MerchantKycScreen({ navigation, route }) {
                     style={styles.input}
                     value={form.business_name}
                     onChangeText={v => setField('business_name', v)}
-                    placeholder={isPartner ? 'Ex : Restaurant Chez Paul' : 'Ex : Garage Auto Douala'}
+                    placeholder={isPartner ? 'Ex : Restaurant Chez Paul' : 'Ex : Garage Auto Libreville'}
                     placeholderTextColor="#bbb"
                 />
 
