@@ -381,6 +381,7 @@ const RideRequestScreen = ({ navigation }) => {
                 initialRegion={currentLocation || { latitude: 0.4162, longitude: 9.4673, latitudeDelta: 0.08, longitudeDelta: 0.08 }}
                 showsUserLocation
                 userLocation={currentLocation}
+                mapType={mapType}
                 markers={[
                     ...(pickupCoords  ? [{ id: 'pickup',  coordinate: pickupCoords,  type: 'pickup'  }] : []),
                     ...(dropoffCoords ? [{ id: 'dropoff', coordinate: dropoffCoords, type: 'dropoff' }] : []),
@@ -455,7 +456,7 @@ const RideRequestScreen = ({ navigation }) => {
             </View>
 
             {/* ── Bottom panel — Animated.View rises above keyboard ── */}
-            <Animated.View style={[styles.panel, { bottom: panelBottom, paddingBottom: SPACING.lg + insets.bottom + 16 }]}>
+            <Animated.View style={[styles.panel, { bottom: panelBottom, paddingBottom: SPACING.lg + insets.bottom + 16, maxHeight: fareType === 'per_hour' ? SCREEN_HEIGHT * 0.82 : SCREEN_HEIGHT * 0.65 }]}>
                 <View style={styles.dragHandle} />
                 <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} style={{ flex: 1 }}>
                 <ScrollView

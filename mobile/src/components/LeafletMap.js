@@ -58,9 +58,42 @@ var markersMap = {};
 var polylinesMap = {};
 var userDot = null;
 var initialized = false;
+var streetLayer = null;
+var satelliteLayer = null;
+var labelLayer = null;
+var currentMapType = 'standard';
 
 function send(type, data) {
   try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: type, data: data || {} })); } catch(e) {}
+}
+
+function buildLayers() {
+  // Street: CartoDB Voyager — detailed labels, roads, POIs, no API key
+  streetLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19, subdomains: ['a','b','c','d'],
+  });
+  // Satellite: ESRI World Imagery — free, no API key
+  satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+  });
+  // Label overlay on top of satellite (CartoDB only-labels layer)
+  labelLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19, subdomains: ['a','b','c','d'], opacity: 0.9,
+  });
+}
+
+function setMapType(type) {
+  if (!map) return;
+  currentMapType = type;
+  if (type === 'satellite') {
+    if (map.hasLayer(streetLayer)) map.removeLayer(streetLayer);
+    if (!map.hasLayer(satelliteLayer)) satelliteLayer.addTo(map);
+    if (!map.hasLayer(labelLayer)) labelLayer.addTo(map);
+  } else {
+    if (map.hasLayer(satelliteLayer)) map.removeLayer(satelliteLayer);
+    if (map.hasLayer(labelLayer)) map.removeLayer(labelLayer);
+    if (!map.hasLayer(streetLayer)) streetLayer.addTo(map);
+  }
 }
 
 function initMap(region) {
@@ -71,11 +104,8 @@ function initMap(region) {
   var zoom = latDeltaToZoom(region.latitudeDelta || 0.05);
   map = L.map('map', { zoomControl: false, attributionControl: false }).setView([lat, lng], zoom);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
-  // CartoDB Voyager — free, no API key, reliable in Android WebViews (no 403)
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19,
-    subdomains: ['a','b','c','d'],
-  }).addTo(map);
+  buildLayers();
+  streetLayer.addTo(map);
   map.on('click', function(e) {
     send('press', { latitude: e.latlng.lat, longitude: e.latlng.lng });
   });
@@ -187,6 +217,7 @@ function handleMessage(e) {
     else if (msg.type === 'fitBounds') fitBounds(msg.coords, msg.padding);
     else if (msg.type === 'animateTo') animateTo(msg.region);
     else if (msg.type === 'setCenter') { if(map) map.setView([msg.lat, msg.lng], msg.zoom || map.getZoom()); }
+    else if (msg.type === 'setMapType') setMapType(msg.mapType);
   } catch(err) {}
 }
 </script>
@@ -200,6 +231,7 @@ const LeafletMap = forwardRef(function LeafletMap(props, ref) {
         initialRegion,
         showsUserLocation,
         userLocation,
+        mapType = 'standard',
         markers = [],
         polylines = [],
         onPress,
@@ -236,6 +268,11 @@ const LeafletMap = forwardRef(function LeafletMap(props, ref) {
             inject({ type: 'setCenter', lat: latitude, lng: longitude, zoom });
         },
     }));
+
+    // ── sync map type ─────────────────────────────────────────────────────────
+    useEffect(() => {
+        sendWhenReady({ type: 'setMapType', mapType });
+    }, [mapType]);
 
     // ── sync markers ──────────────────────────────────────────────────────────
     useEffect(() => {
