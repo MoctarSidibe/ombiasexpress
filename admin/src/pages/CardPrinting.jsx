@@ -56,19 +56,15 @@ function OmbiaCard({ name, cardNumber, nfcEncoded }) {
                     <img
                         src="/logo.png"
                         alt="Ombia"
-                        style={{ width: 44, height: 44, objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+                        style={{ width: 64, height: 64, objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
                         onError={e => {
                             e.target.style.display = 'none';
                             e.target.nextSibling.style.display = 'flex';
                         }}
                     />
                     {/* Fallback if logo not found */}
-                    <div style={{ width:36, height:36, borderRadius:'50%', background:'rgba(255,167,38,0.18)', display:'none', alignItems:'center', justifyContent:'center' }}>
-                        <span style={{ color:'#FFA726', fontWeight:900, fontSize:14 }}>O</span>
-                    </div>
-                    <div>
-                        <div style={{ color:'#fff', fontSize:15, fontWeight:900, letterSpacing:2 }}>OMBIA</div>
-                        <div style={{ color:'rgba(255,167,38,0.85)', fontSize:8, fontWeight:700, letterSpacing:3 }}>EXPRESS</div>
+                    <div style={{ width:44, height:44, borderRadius:'50%', background:'rgba(255,167,38,0.18)', display:'none', alignItems:'center', justifyContent:'center' }}>
+                        <span style={{ color:'#FFA726', fontWeight:900, fontSize:18 }}>O</span>
                     </div>
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:10 }}>
@@ -98,10 +94,9 @@ function OmbiaCard({ name, cardNumber, nfcEncoded }) {
             <div style={{ display:'flex', alignItems:'center', gap:14, position:'relative', zIndex:1 }}>
                 {/* Orange NFC icon (replaces SIM chip) */}
                 <div style={{ width:38, height:38, borderRadius:'50%', background:'rgba(255,167,38,0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, border:'1.5px solid rgba(255,167,38,0.35)' }}>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 2C10.5 2 9.5 3 9.5 4.5V19.5C9.5 21 10.5 22 12 22" stroke="#FFA726" strokeWidth="2" strokeLinecap="round"/>
-                        <path d="M15.5 7C17 8.2 18 10 18 12C18 14 17 15.8 15.5 17" stroke="#FFA726" strokeWidth="1.8" strokeLinecap="round" fill="none"/>
-                        <path d="M18.5 4.5C21 6.5 22.5 9 22.5 12C22.5 15 21 17.5 18.5 19.5" stroke="rgba(255,167,38,0.5)" strokeWidth="1.8" strokeLinecap="round" fill="none"/>
+                    {/* MDI nfc icon — matches MaterialCommunityIcons name="nfc" on mobile */}
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFA726">
+                        <path d="M20,2H4A2,2 0 0,0 2,4V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V4A2,2 0 0,0 20,2M20,20H4V4H20V20M18,6H6V11H18V6M16,9H8V8H16V9M6,12H8V14H6V12M9,12H11V14H9V12M12,12H14V14H12V12M15,12H17V14H15V12M6,15H8V17H6V15M9,15H11V17H9V15M12,15H14V17H12V15M15,15H17V17H15V15" />
                     </svg>
                 </div>
                 {/* Card number */}
@@ -156,8 +151,6 @@ function printCard(card) {
             font-family:'Arial',sans-serif;color:#fff;
             border:0.3mm solid rgba(255,167,38,0.4);box-sizing:border-box;
         }
-        .brand{font-size:4mm;font-weight:900;letter-spacing:.5mm}
-        .sub{font-size:2mm;color:rgba(255,167,38,.85);letter-spacing:.8mm}
         .nfc-chip{width:9mm;height:9mm;border-radius:50%;background:rgba(255,167,38,0.15);border:0.4mm solid rgba(255,167,38,0.4);display:inline-flex;align-items:center;justify-content:center}
         .num{font-size:3.5mm;letter-spacing:.6mm;font-family:monospace;color:rgba(255,255,255,.88)}
         .holder-label{font-size:1.8mm;color:rgba(255,255,255,.4);letter-spacing:.4mm}
@@ -166,11 +159,11 @@ function printCard(card) {
     </style></head><body>
     <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center">
-            <div><div class="brand">OMBIA</div><div class="sub">EXPRESS</div></div>
+            <img src="/logo.png" style="width:16mm;height:16mm;object-fit:contain;filter:brightness(0) invert(1)" onerror="this.style.display='none'" />
             <div class="nfc-row">NFC &bull; QR</div>
         </div>
         <div style="display:flex;align-items:center;gap:4mm">
-            <div class="nfc-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2C10.5 2 9.5 3 9.5 4.5V19.5C9.5 21 10.5 22 12 22" stroke="#FFA726" stroke-width="2" stroke-linecap="round"/><path d="M15.5 7C17 8.2 18 10 18 12C18 14 17 15.8 15.5 17" stroke="#FFA726" stroke-width="1.8" stroke-linecap="round"/><path d="M18.5 4.5C21 6.5 22.5 9 22.5 12C22.5 15 21 17.5 18.5 19.5" stroke="rgba(255,167,38,0.5)" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <div class="nfc-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="#FFA726"><path d="M20,2H4A2,2 0 0,0 2,4V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V4A2,2 0 0,0 20,2M20,20H4V4H20V20M18,6H6V11H18V6M16,9H8V8H16V9M6,12H8V14H6V12M9,12H11V14H9V12M12,12H14V14H12V12M15,12H17V14H15V12M6,15H8V17H6V15M9,15H11V17H9V15M12,15H14V17H12V15M15,15H17V17H15V15"/></svg></div>
             <div class="num">${cn}</div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:flex-end">
