@@ -5,7 +5,7 @@ import App from './App.jsx'
 import './index.css'
 
 Sentry.init({
-    dsn: 'http://871e98e2e6b24605967f9ab90db1a0c1@37.60.240.199:8765/3',
+    dsn: 'http://099c48066d8143b797340cd552d80a58@37.60.240.199:8765/6',
     environment: import.meta.env.MODE,
     tracesSampleRate: 0.01,
     replaysSessionSampleRate: 0,

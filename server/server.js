@@ -1,7 +1,7 @@
 const Sentry = require('@sentry/node');
 
 Sentry.init({
-    dsn: 'http://2c515d222ac2496d9b77160714a2646c@37.60.240.199:8765/2',
+    dsn: 'http://11207bb5d51c48019375f95da8f150d8@37.60.240.199:8765/5',
     environment: process.env.NODE_ENV || 'production',
     tracesSampleRate: 0.01,
     autoSessionTracking: false,

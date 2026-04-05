@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react-native';
 
 Sentry.init({
-    dsn: 'http://019000ecf9634046956d3acb91eb3332@37.60.240.199:8765/1',
+    dsn: 'http://9c6ac7a174b34c0da350ea01ee6aa170@37.60.240.199:8765/4',
     environment: __DEV__ ? 'development' : 'production',
     tracesSampleRate: 0.01,
     autoSessionTracking: false, // GlitchTip does not support sessions
