@@ -128,9 +128,9 @@ const swaggerUiOpts = {
     customSiteTitle: 'Ombia Express — API Docs',
     customCss: `
         /* ── Topbar ── */
-        .topbar { background: #1A2E48 !important; padding: 8px 16px; }
+        .topbar { background: #1A2E48 !important; padding: 12px 16px; }
         .topbar-wrapper { display: flex; align-items: center; gap: 12px; }
-        .topbar-wrapper img { content: url('${LOGO_URL}'); height: 216px; width: 216px; object-fit: contain; }
+        .topbar-wrapper img { content: url('${LOGO_URL}'); height: 120px !important; width: 120px !important; max-height: none !important; object-fit: contain; display: block; }
         .topbar-wrapper .link { pointer-events: none; }
         .topbar-wrapper .link span { color: #fff; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
 
@@ -143,9 +143,9 @@ const swaggerUiOpts = {
         .swagger-ui .info hgroup.main::before {
             content: '';
             display: inline-block;
-            width: 72px;
-            height: 72px;
-            min-width: 216px;
+            width: 120px;
+            height: 120px;
+            min-width: 120px;
             background-image: url('${LOGO_URL}');
             background-size: contain;
             background-repeat: no-repeat;
