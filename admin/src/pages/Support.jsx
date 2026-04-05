@@ -75,12 +75,18 @@ function ChatPanel({ ticket, onBack, onUpdated }) {
 
     // Real-time: join ticket room + listen for new messages
     useEffect(() => {
-        socket.emit('join_support_room', { ticket_id: ticket.id });
+        const joinRoom = () => {
+            socket.emit('join_support_room', { ticket_id: ticket.id });
+        };
+        // Join immediately (if already connected) and on every (re)connect
+        joinRoom();
+        socket.on('connect', joinRoom);
 
         const onMessage = ({ ticket_id, message }) => {
             if (ticket_id !== ticket.id) return;
             setMessages(prev => prev.find(m => m.id === message.id) ? prev : [...prev, message]);
             setTyping(false);
+            setTimeout(() => listRef.current?.scrollTo({ top: 99999, behavior: 'smooth' }), 60);
         };
 
         const onTyping = ({ ticket_id, is_typing }) => {
@@ -96,6 +102,7 @@ function ChatPanel({ ticket, onBack, onUpdated }) {
         socket.on('support_user_typing', onTyping);
 
         return () => {
+            socket.off('connect', joinRoom);
             socket.emit('leave_support_room', { ticket_id: ticket.id });
             socket.off('support_new_message', onMessage);
             socket.off('support_user_typing', onTyping);
@@ -145,6 +152,7 @@ function ChatPanel({ ticket, onBack, onUpdated }) {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
+            <style>{`@keyframes bounce { 0%,80%,100%{transform:scale(0)} 40%{transform:scale(1)} }`}</style>
             {/* Header */}
             <div style={{ padding: '14px 20px', borderBottom: '1px solid #F3F4F6', background: '#fff' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
@@ -319,10 +327,11 @@ export default function Support() {
 
     // ── Socket setup ──────────────────────────────────────────────────────────
     useEffect(() => {
-        socket.connect();
-        socket.emit('join_support_agents');
-
-        const onConnect    = () => setConnected(true);
+        // Join agents room on every connect/reconnect (not before connect is confirmed)
+        const onConnect = () => {
+            socket.emit('join_support_agents');
+            setConnected(true);
+        };
         const onDisconnect = () => setConnected(false);
 
         // New ticket from a user
@@ -358,6 +367,9 @@ export default function Support() {
         socket.on('disconnect',         onDisconnect);
         socket.on('support_new_ticket', onNewTicket);
         socket.on('support_new_message', onNewMessage);
+
+        // Connect after listeners are registered so we never miss the 'connect' event
+        socket.connect();
 
         return () => {
             socket.off('connect',            onConnect);

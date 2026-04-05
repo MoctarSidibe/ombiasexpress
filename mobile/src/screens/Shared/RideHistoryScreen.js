@@ -1,7 +1,7 @@
 import { API_BASE } from '../../services/api.service';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-    View, Text, StyleSheet, FlatList, TouchableOpacity,
+    View, Text, StyleSheet, FlatList, ScrollView, TouchableOpacity,
     ActivityIndicator, RefreshControl, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -69,19 +69,22 @@ const ORDER_STATUS = {
     cancelled:  { label: 'Annulée',      color: '#EF4444' },
 };
 
-const WALLET_TYPE = {
-    topup:        { label: 'Recharge',         color: '#10B981', icon: 'arrow-down-circle',   sign: '+' },
-    withdrawal:   { label: 'Retrait',          color: '#EF4444', icon: 'arrow-up-circle',     sign: '-' },
-    payment:      { label: 'Paiement',         color: '#3B82F6', icon: 'card-outline',        sign: '-' },
-    ride_payment: { label: 'Course',           color: '#F59E0B', icon: 'car-outline',         sign: '-' },
-    ride_earning: { label: 'Gain course',      color: '#10B981', icon: 'car-outline',         sign: '+' },
-    rental_payment:{ label: 'Location',        color: '#8B5CF6', icon: 'key-outline',         sign: '-' },
-    rental_earning:{ label: 'Gain location',   color: '#10B981', icon: 'key-outline',         sign: '+' },
-    delivery_payment:{ label: 'Livraison',     color: '#06B6D4', icon: 'bicycle-outline',     sign: '-' },
-    delivery_earning:{ label: 'Gain livraison',color: '#10B981', icon: 'bicycle-outline',     sign: '+' },
-    refund:       { label: 'Remboursement',    color: '#10B981', icon: 'refresh-circle',      sign: '+' },
-    cashback:     { label: 'Cashback',         color: '#F59E0B', icon: 'gift-outline',        sign: '+' },
-    transfer:     { label: 'Transfert',        color: '#6B7280', icon: 'swap-horizontal',     sign: '' },
+// Keyed by tx.source (matches the WalletTransaction model's source ENUM)
+const WALLET_SRC = {
+    airtel_money:     { label: 'Recharge Airtel',   color: '#E53935', logo: require('../../../assets/airtel-money.png'), sign: '+' },
+    moov_money:       { label: 'Recharge Moov',     color: '#1E88E5', logo: require('../../../assets/moov-money.png'),   sign: '+' },
+    bank_card:        { label: 'Carte bancaire',    color: '#43A047', icon: 'card-outline',           sign: '+' },
+    cash:             { label: 'Espèces',           color: '#6D4C41', icon: 'cash-outline',           sign: '+' },
+    ride_payment:     { label: 'Paiement course',   color: '#F59E0B', icon: 'car-outline',            sign: '-' },
+    ride_earning:     { label: 'Gain course',       color: '#10B981', icon: 'car-outline',            sign: '+' },
+    rental_payment:   { label: 'Paiement location', color: '#8B5CF6', icon: 'key-outline',            sign: '-' },
+    rental_earning:   { label: 'Gain location',     color: '#10B981', icon: 'key-outline',            sign: '+' },
+    ecommerce_payment:{ label: 'Achat boutique',    color: '#7B1FA2', icon: 'bag-handle-outline',     sign: '-' },
+    withdrawal:       { label: 'Retrait',           color: '#EF4444', icon: 'arrow-up-circle-outline',sign: '-' },
+    refund:           { label: 'Remboursement',     color: '#10B981', icon: 'refresh-circle-outline', sign: '+' },
+    promo:            { label: 'Promotion',         color: '#EC407A', icon: 'gift-outline',           sign: '+' },
+    transfer_in:      { label: 'Reçu',              color: '#1565C0', icon: 'arrow-down-circle-outline',sign:'+' },
+    transfer_out:     { label: 'Envoyé',            color: '#6B7280', icon: 'arrow-up-circle-outline', sign:'-' },
 };
 
 // ── Card components ───────────────────────────────────────────────────────────
@@ -248,13 +251,16 @@ const OrderCard = ({ order }) => {
 };
 
 const WalletCard = ({ tx }) => {
-    const cfg = WALLET_TYPE[tx.type] || { label: tx.type, color: '#6B7280', icon: 'wallet-outline', sign: '' };
-    const isCredit = cfg.sign === '+';
+    const cfg = WALLET_SRC[tx.source] || { label: tx.source || tx.type, color: '#9AA3B0', icon: 'wallet-outline', sign: tx.type === 'credit' ? '+' : '-' };
+    const isCredit = tx.type === 'credit';
     return (
         <View style={styles.card}>
             <View style={styles.cardHeader}>
-                <View style={styles.walletIconWrap}>
-                    <Ionicons name={cfg.icon} size={18} color={cfg.color} />
+                <View style={[styles.walletIconWrap, { backgroundColor: cfg.color + '18', overflow: 'hidden' }]}>
+                    {cfg.logo
+                        ? <Image source={cfg.logo} style={{ width: 28, height: 28 }} resizeMode="contain" />
+                        : <Ionicons name={cfg.icon || 'wallet-outline'} size={18} color={cfg.color} />
+                    }
                 </View>
                 <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={styles.walletType}>{cfg.label}</Text>
@@ -287,9 +293,19 @@ const TABS = [
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
+// Sub-filters per tab
+const SUB_FILTERS = {
+    rides:      [{ key: 'all', label: 'Tous' }, { key: 'completed', label: 'Terminés' }, { key: 'in_progress', label: 'En cours' }, { key: 'cancelled_rider', label: 'Annulés', match: ['cancelled_rider','cancelled_driver'] }],
+    deliveries: [{ key: 'all', label: 'Tous' }, { key: 'delivered', label: 'Livrées' }, { key: 'in_transit', label: 'En transit' }, { key: 'cancelled', label: 'Annulées' }],
+    rentals:    [{ key: 'all', label: 'Tous' }, { key: 'completed', label: 'Terminées' }, { key: 'active', label: 'En cours' }, { key: 'pending', label: 'En attente' }, { key: 'cancelled', label: 'Annulées' }],
+    orders:     [{ key: 'all', label: 'Tous' }, { key: 'completed', label: 'Terminées' }, { key: 'preparing', label: 'En préparation' }, { key: 'cancelled', label: 'Annulées' }],
+    wallet:     [{ key: 'all', label: 'Tous' }, { key: 'credit', label: 'Reçus' }, { key: 'debit', label: 'Dépenses' }],
+};
+
 export default function RideHistoryScreen() {
     const { user } = useAuth();
     const [activeTab,   setActiveTab]   = useState('rides');
+    const [subFilter,   setSubFilter]   = useState('all');
     const [rides,       setRides]       = useState([]);
     const [rentals,     setRentals]     = useState([]);
     const [deliveries,  setDeliveries]  = useState([]);
@@ -316,23 +332,29 @@ export default function RideHistoryScreen() {
 
     useEffect(() => { loadAll(); }, [loadAll]);
 
-    const dataMap = {
-        rides,
-        deliveries,
-        rentals,
-        orders,
-        wallet,
-    };
+    const rawDataMap = { rides, deliveries, rentals, orders, wallet };
 
     const emptyMap = {
-        rides:      { icon: 'car-outline',          msg: 'Aucune course pour le moment' },
-        deliveries: { icon: 'bicycle-outline',      msg: 'Aucune livraison pour le moment' },
-        rentals:    { icon: 'key-outline',          msg: 'Aucune location pour le moment' },
-        orders:     { icon: 'bag-handle-outline',   msg: 'Aucune commande pour le moment' },
-        wallet:     { icon: 'wallet-outline',       msg: 'Aucune transaction pour le moment' },
+        rides:      { icon: 'car-outline',        msg: 'Aucune course pour le moment' },
+        deliveries: { icon: 'bicycle-outline',    msg: 'Aucune livraison pour le moment' },
+        rentals:    { icon: 'key-outline',        msg: 'Aucune location pour le moment' },
+        orders:     { icon: 'bag-handle-outline', msg: 'Aucune commande pour le moment' },
+        wallet:     { icon: 'wallet-outline',     msg: 'Aucune transaction pour le moment' },
     };
 
-    const data    = dataMap[activeTab] || [];
+    // Apply sub-filter
+    const applySubFilter = (items) => {
+        if (subFilter === 'all') return items;
+        const sf = (SUB_FILTERS[activeTab] || []).find(f => f.key === subFilter);
+        if (!sf) return items;
+        const matchKeys = sf.match || [sf.key];
+        if (activeTab === 'wallet') {
+            return items.filter(tx => tx.type === subFilter);
+        }
+        return items.filter(item => matchKeys.includes(item.status));
+    };
+
+    const data    = applySubFilter(rawDataMap[activeTab] || []);
     const isEmpty = data.length === 0;
     const empty   = emptyMap[activeTab];
 
@@ -361,12 +383,12 @@ export default function RideHistoryScreen() {
             <View style={styles.tabBarWrap}>
                 {TABS.map(t => {
                     const active = activeTab === t.key;
-                    const count  = dataMap[t.key]?.length || 0;
+                    const count  = (rawDataMap[t.key] || []).length;
                     return (
                         <TouchableOpacity
                             key={t.key}
                             style={[styles.tabChip, active && { borderBottomColor: t.color, borderBottomWidth: 2.5 }]}
-                            onPress={() => setActiveTab(t.key)}
+                            onPress={() => { setActiveTab(t.key); setSubFilter('all'); }}
                             activeOpacity={0.7}
                         >
                             {/* Icon with coloured background pill when active */}
@@ -385,6 +407,26 @@ export default function RideHistoryScreen() {
                     );
                 })}
             </View>
+
+            {/* Sub-filter chips */}
+            {(SUB_FILTERS[activeTab] || []).length > 1 && (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}
+                    style={{ backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}
+                    contentContainerStyle={{ paddingHorizontal: 14, paddingVertical: 8, gap: 8, flexDirection: 'row' }}>
+                    {(SUB_FILTERS[activeTab] || []).map(sf => {
+                        const isActive = subFilter === sf.key;
+                        const tabCfg = TABS.find(t => t.key === activeTab);
+                        const color  = tabCfg?.color || '#1C2E4A';
+                        return (
+                            <TouchableOpacity key={sf.key}
+                                style={[styles.subFilterChip, isActive && { borderColor: color, backgroundColor: color + '12' }]}
+                                onPress={() => setSubFilter(sf.key)}>
+                                <Text style={[styles.subFilterLabel, isActive && { color, fontWeight: '700' }]}>{sf.label}</Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </ScrollView>
+            )}
 
             {/* Content */}
             {loading ? (
@@ -470,6 +512,14 @@ const styles = StyleSheet.create({
     },
     tabBadgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
     tabChipLabel:  { fontSize: 10, fontWeight: '500', color: '#B0B8C1' },
+
+    // ── Sub-filter chips ──────────────────────────────────────────────────────
+    subFilterChip: {
+        paddingHorizontal: 14, paddingVertical: 6,
+        borderRadius: 20, borderWidth: 1.5, borderColor: '#E5E7EB',
+        backgroundColor: '#F9FAFB',
+    },
+    subFilterLabel: { fontSize: 12, fontWeight: '600', color: '#9CA3AF' },
 
     // ── List ─────────────────────────────────────────────────────────────────
     list:           { padding: SPACING.md, paddingBottom: 100 },

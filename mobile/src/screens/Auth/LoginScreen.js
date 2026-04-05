@@ -155,7 +155,7 @@ const LoginScreen = ({ navigation }) => {
             </Modal>
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                behavior="padding"
                 style={styles.kav}
             >
                 <View style={styles.screen}>

@@ -406,7 +406,8 @@ export default function DeliveryRequestScreen({ navigation }) {
             {/* ── Bottom panel ── */}
             <KeyboardAvoidingView
                 style={styles.panelWrap}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                behavior="padding"
+                keyboardVerticalOffset={Platform.OS === 'android' ? 0 : 0}
             >
                 <Animated.View style={[styles.panel, { marginBottom: panelBottom, paddingBottom: 16 + insets.bottom }]}>
                     <ScrollView

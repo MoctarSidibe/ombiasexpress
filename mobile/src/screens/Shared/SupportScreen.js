@@ -4,7 +4,7 @@ import {
     TextInput, KeyboardAvoidingView, Platform, ActivityIndicator,
     Alert, ScrollView, Modal, StatusBar,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import socketService from '../../services/socket.service';
@@ -73,6 +73,7 @@ function NewTicketModal({ visible, onClose, onCreated }) {
 
     return (
         <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+            <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
             <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top']}>
                 {/* Header */}
                 <View style={S.modalHeader}>
@@ -141,6 +142,7 @@ function NewTicketModal({ visible, onClose, onCreated }) {
                     )}
                 </ScrollView>
             </SafeAreaView>
+            </KeyboardAvoidingView>
         </Modal>
     );
 }
@@ -152,6 +154,7 @@ function ChatScreen({ ticket, onBack }) {
     const [sending,      setSending]      = useState(false);
     const [ticketStatus, setTicketStatus] = useState(ticket.status);
     const [agentTyping,  setAgentTyping]  = useState(false);
+    const insets      = useSafeAreaInsets();
     const listRef     = useRef(null);
     const typingTimer = useRef(null);
     const myTypingTimer = useRef(null);
@@ -311,8 +314,8 @@ function ChatScreen({ ticket, onBack }) {
                     </Text>
                 </View>
             ) : (
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-                    <View style={S.inputRow}>
+                <KeyboardAvoidingView behavior="padding">
+                    <View style={[S.inputRow, { paddingBottom: insets.bottom > 0 ? insets.bottom : 8 }]}>
                         <TextInput
                             style={S.chatInput}
                             placeholder="Votre message…"

@@ -4,7 +4,7 @@ import {
     TextInput, Modal, ActivityIndicator, RefreshControl, Alert,
     Dimensions, KeyboardAvoidingView, Platform, StatusBar, Image
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api.service';
@@ -23,8 +23,8 @@ const METHODS = [
 
 // ── Transaction source config ─────────────────────────────────────────────────
 const SRC = {
-    airtel_money:   { label: 'Airtel Money',       icon: 'phone-portrait', color: '#E53935' },
-    moov_money:     { label: 'Moov Money',         icon: 'phone-portrait', color: '#1E88E5' },
+    airtel_money:   { label: 'Airtel Money',       logo: require('../../../assets/airtel-money.png'), color: '#E53935' },
+    moov_money:     { label: 'Moov Money',         logo: require('../../../assets/moov-money.png'),   color: '#1E88E5' },
     bank_card:      { label: 'Carte Bancaire',     icon: 'card',           color: '#43A047' },
     cash:           { label: 'Espèces',            icon: 'cash',           color: '#6D4C41' },
     ride_earning:   { label: 'Course',             icon: 'car-sport',      color: '#26A69A' },
@@ -58,6 +58,7 @@ const maskCardNumber = (cardNumber = '') => {
 // ── WalletScreen ──────────────────────────────────────────────────────────────
 const WalletScreen = ({ navigation, route }) => {
     const { user } = useAuth();
+    const insets = useSafeAreaInsets();
 
     const [balance,      setBalance]      = useState(0);
     const [currency,     setCurrency]     = useState('XAF');
@@ -68,6 +69,7 @@ const WalletScreen = ({ navigation, route }) => {
     const [cardDelivery, setCardDelivery] = useState('24–48h');
     const [loading,      setLoading]      = useState(true);
     const [refreshing,   setRefreshing]   = useState(false);
+    const [txFilter,     setTxFilter]     = useState('all');
 
     // Top-up modal
     const [topupModal,   setTopupModal]   = useState(false);
@@ -325,6 +327,13 @@ const WalletScreen = ({ navigation, route }) => {
                         <Text style={styles.actionLabel}>Retirer</Text>
                     </TouchableOpacity>
 
+                    <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('WalletTransfer')}>
+                        <View style={[styles.actionIconWrap, { backgroundColor: 'rgba(21,101,192,0.1)' }]}>
+                            <Ionicons name="swap-horizontal-outline" size={22} color="#1565C0" />
+                        </View>
+                        <Text style={styles.actionLabel}>Transférer</Text>
+                    </TouchableOpacity>
+
                     <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('RiderScanPay')}>
                         <View style={[styles.actionIconWrap, { backgroundColor: 'rgba(0,137,123,0.1)' }]}>
                             <Ionicons name="scan-outline" size={22} color="#00897B" />
@@ -494,37 +503,87 @@ const WalletScreen = ({ navigation, route }) => {
                     /* ═══════════════════════════════════════════════════════════
                         TRANSACTION HISTORY TAB
                     ═══════════════════════════════════════════════════════════ */
-                    <View style={styles.txSection}>
-                        {transactions.length === 0 ? (
-                            <View style={styles.emptyBox}>
-                                <Ionicons name="receipt-outline" size={40} color="#D0D8E0" />
-                                <Text style={styles.emptyText}>Aucune transaction</Text>
-                                <Text style={styles.emptyHint}>Vos transactions apparaîtront ici</Text>
-                            </View>
-                        ) : (
-                            transactions.map(tx => {
-                                const cfg = SRC[tx.source] || { label: tx.source, icon: 'ellipse', color: '#9AA3B0' };
-                                const isCredit = tx.type === 'credit';
-                                return (
-                                    <View key={tx.id} style={styles.txRow}>
-                                        <View style={[styles.txIcon, { backgroundColor: cfg.color + '18' }]}>
-                                            <Ionicons name={cfg.icon} size={19} color={cfg.color} />
-                                        </View>
-                                        <View style={styles.txInfo}>
-                                            <Text style={styles.txLabel} numberOfLines={1}>{tx.description || cfg.label}</Text>
-                                            <Text style={styles.txDate}>{fmtDate(tx.created_at)}</Text>
-                                        </View>
-                                        <View style={styles.txAmountCol}>
-                                            <Text style={[styles.txAmount, { color: isCredit ? '#26A69A' : '#E53935' }]}>
-                                                {isCredit ? '+' : '−'}{parseFloat(tx.amount).toLocaleString('fr-FR', { minimumFractionDigits: 0 })}
+                    (() => {
+                        const TX_FILTERS = [
+                            { key: 'all',      label: 'Tout',       sources: null },
+                            { key: 'topup',    label: 'Recharge',   sources: ['airtel_money','moov_money','bank_card','cash'] },
+                            { key: 'rides',    label: 'Courses',    sources: ['ride_payment','ride_earning'] },
+                            { key: 'rentals',  label: 'Locations',  sources: ['rental_payment','rental_earning'] },
+                            { key: 'shop',     label: 'Boutique',   sources: ['ecommerce_payment'] },
+                            { key: 'transfer', label: 'Transferts', sources: ['transfer_in','transfer_out'] },
+                            { key: 'other',    label: 'Autres',     sources: ['withdrawal','refund','promo'] },
+                        ];
+                        const active = TX_FILTERS.find(f => f.key === txFilter);
+                        const filtered = active?.sources
+                            ? transactions.filter(tx => active.sources.includes(tx.source))
+                            : transactions;
+                        return (
+                            <View>
+                                {/* Filter chips */}
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false}
+                                    contentContainerStyle={styles.txFilterRow}>
+                                    {TX_FILTERS.map(f => {
+                                        const isActive = txFilter === f.key;
+                                        const count = f.sources
+                                            ? transactions.filter(tx => f.sources.includes(tx.source)).length
+                                            : transactions.length;
+                                        return (
+                                            <TouchableOpacity key={f.key}
+                                                style={[styles.txFilterChip, isActive && styles.txFilterChipActive]}
+                                                onPress={() => setTxFilter(f.key)}>
+                                                <Text style={[styles.txFilterLabel, isActive && styles.txFilterLabelActive]}>
+                                                    {f.label}
+                                                </Text>
+                                                {count > 0 && (
+                                                    <View style={[styles.txFilterBadge, isActive && styles.txFilterBadgeActive]}>
+                                                        <Text style={[styles.txFilterBadgeText, isActive && { color: '#FFA726' }]}>{count}</Text>
+                                                    </View>
+                                                )}
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </ScrollView>
+
+                                {/* Transaction list */}
+                                <View style={styles.txSection}>
+                                    {filtered.length === 0 ? (
+                                        <View style={styles.emptyBox}>
+                                            <Ionicons name="receipt-outline" size={40} color="#D0D8E0" />
+                                            <Text style={styles.emptyText}>Aucune transaction</Text>
+                                            <Text style={styles.emptyHint}>
+                                                {txFilter === 'all' ? 'Vos transactions apparaîtront ici' : 'Aucune transaction dans cette catégorie'}
                                             </Text>
-                                            <Text style={styles.txCurrency}>{currency}</Text>
                                         </View>
-                                    </View>
-                                );
-                            })
-                        )}
-                    </View>
+                                    ) : (
+                                        filtered.map(tx => {
+                                            const cfg = SRC[tx.source] || { label: tx.source, icon: 'ellipse', color: '#9AA3B0' };
+                                            const isCredit = tx.type === 'credit';
+                                            return (
+                                                <View key={tx.id} style={styles.txRow}>
+                                                    <View style={[styles.txIcon, { backgroundColor: cfg.color + '18' }]}>
+                                                        {cfg.logo
+                                                            ? <Image source={cfg.logo} style={styles.txLogo} resizeMode="contain" />
+                                                            : <Ionicons name={cfg.icon} size={19} color={cfg.color} />
+                                                        }
+                                                    </View>
+                                                    <View style={styles.txInfo}>
+                                                        <Text style={styles.txLabel} numberOfLines={1}>{tx.description || cfg.label}</Text>
+                                                        <Text style={styles.txDate}>{fmtDate(tx.created_at)}</Text>
+                                                    </View>
+                                                    <View style={styles.txAmountCol}>
+                                                        <Text style={[styles.txAmount, { color: isCredit ? '#26A69A' : '#E53935' }]}>
+                                                            {isCredit ? '+' : '−'}{parseFloat(tx.amount).toLocaleString('fr-FR', { minimumFractionDigits: 0 })}
+                                                        </Text>
+                                                        <Text style={styles.txCurrency}>{currency}</Text>
+                                                    </View>
+                                                </View>
+                                            );
+                                        })
+                                    )}
+                                </View>
+                            </View>
+                        );
+                    })()
                 )}
 
             </ScrollView>
@@ -534,7 +593,7 @@ const WalletScreen = ({ navigation, route }) => {
             ════════════════════════════════════════════════════════════════ */}
             <Modal visible={topupModal} animationType="slide" transparent onRequestClose={() => setTopupModal(false)}>
                 <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} style={styles.modalOverlay}>
-                    <View style={styles.sheet}>
+                    <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom + 16, 28) }]}>
                         <View style={styles.sheetHandle} />
                         <Text style={styles.sheetTitle}>Recharger le portefeuille</Text>
                         <Text style={styles.sheetLabel}>Méthode de paiement</Text>
@@ -569,7 +628,7 @@ const WalletScreen = ({ navigation, route }) => {
             ════════════════════════════════════════════════════════════════ */}
             <Modal visible={withdrawModal} animationType="slide" transparent onRequestClose={() => setWithdrawModal(false)}>
                 <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} style={styles.modalOverlay}>
-                    <View style={styles.sheet}>
+                    <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom + 16, 28) }]}>
                         <View style={styles.sheetHandle} />
                         <Text style={styles.sheetTitle}>Retirer des fonds</Text>
                         <Text style={styles.sheetSub}>Solde : {balance.toLocaleString('fr-FR')} {currency}</Text>
@@ -889,13 +948,13 @@ const styles = StyleSheet.create({
 
     // ── Action row ────────────────────────────────────────────────────────────
     actionRow: {
-        flexDirection: 'row', justifyContent: 'space-around',
-        paddingHorizontal: 16, paddingVertical: 20,
+        flexDirection: 'row', justifyContent: 'space-between',
+        paddingHorizontal: 12, paddingVertical: 18,
         backgroundColor: '#F2F4F8',
     },
-    actionBtn:      { alignItems: 'center', gap: 6 },
-    actionIconWrap: { width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-    actionLabel:    { fontSize: 11, fontWeight: '700', color: '#1C2E4A' },
+    actionBtn:      { alignItems: 'center', gap: 5, flex: 1 },
+    actionIconWrap: { width: 46, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+    actionLabel:    { fontSize: 10, fontWeight: '700', color: '#1C2E4A', textAlign: 'center' },
 
     // ── Tab bar ───────────────────────────────────────────────────────────────
     tabBar: {
@@ -964,6 +1023,21 @@ const styles = StyleSheet.create({
     },
     cardCTAText: { color: '#fff', fontSize: 14, fontWeight: '800', flex: 1, textAlign: 'center' },
 
+    // ── Tx filter chips ───────────────────────────────────────────────────────
+    txFilterRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
+    txFilterChip:{
+        flexDirection: 'row', alignItems: 'center', gap: 5,
+        paddingHorizontal: 13, paddingVertical: 7,
+        borderRadius: 20, borderWidth: 1.5, borderColor: '#E8EAF0',
+        backgroundColor: '#fff',
+    },
+    txFilterChipActive:  { borderColor: '#FFA726', backgroundColor: 'rgba(255,167,38,0.08)' },
+    txFilterLabel:       { fontSize: 12, fontWeight: '600', color: '#9AA3B0' },
+    txFilterLabelActive: { color: '#CC8400', fontWeight: '700' },
+    txFilterBadge:       { backgroundColor: '#F0F2F5', borderRadius: 10, paddingHorizontal: 6, paddingVertical: 1 },
+    txFilterBadgeActive: { backgroundColor: 'rgba(255,167,38,0.15)' },
+    txFilterBadgeText:   { fontSize: 10, fontWeight: '700', color: '#9AA3B0' },
+
     // ── Transactions ──────────────────────────────────────────────────────────
     txSection: { paddingHorizontal: 16, paddingTop: 4 },
     txRow: {
@@ -972,7 +1046,8 @@ const styles = StyleSheet.create({
         padding: 13, marginBottom: 8,
         borderWidth: 1, borderColor: '#EAECF0',
     },
-    txIcon:      { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+    txIcon:      { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 12, overflow: 'hidden' },
+    txLogo:      { width: 28, height: 28 },
     txInfo:      { flex: 1 },
     txLabel:     { fontSize: 13, fontWeight: '600', color: '#1C2E4A', marginBottom: 2 },
     txDate:      { fontSize: 11, color: '#9AA3B0' },
