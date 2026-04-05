@@ -217,7 +217,6 @@ export default function MerchantKycScreen({ navigation, route }) {
                 {[
                     'Renseignez vos informations professionnelles',
                     'Uploadez vos documents officiels',
-                    'Indiquez vos coordonnées bancaires',
                     'Notre équipe valide votre dossier',
                 ].map((s, i) => (
                     <View key={i} style={styles.stepsRow}>
@@ -291,7 +290,7 @@ export default function MerchantKycScreen({ navigation, route }) {
                     style={styles.input}
                     value={form.city}
                     onChangeText={v => setField('city', v)}
-                    placeholder="Ex : Douala"
+                    placeholder="Ex : Libreville"
                     placeholderTextColor="#bbb"
                 />
 

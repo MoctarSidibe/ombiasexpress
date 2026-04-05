@@ -215,7 +215,7 @@ export default function FleetKycScreen({ navigation }) {
                 { label: 'Nom complet *', key: 'full_name', placeholder: 'Jean Dupont' },
                 { label: 'Téléphone *',   key: 'phone',     placeholder: '+237 6XX XXX XXX', keyboardType: 'phone-pad' },
                 { label: 'Adresse *',     key: 'address',   placeholder: 'Rue, quartier' },
-                { label: 'Ville *',       key: 'city',      placeholder: 'Yaoundé' },
+                { label: 'Ville *',       key: 'city',      placeholder: 'Libreville' },
                 { label: 'N° CNI / Passeport *', key: 'national_id_number', placeholder: 'Ex : 123456789' },
             ].map(f => (
                 <View key={f.key}>

@@ -98,6 +98,14 @@ export default function DriverKycScreen({ navigation }) {
         }
     };
 
+    // Convert DD/MM/YYYY to YYYY-MM-DD for the API
+    const formatDateForApi = (str) => {
+        if (!str) return null;
+        const parts = str.split('/');
+        if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        return str; // already in another format, pass as-is
+    };
+
     const saveProgress = async (submit = false) => {
         setSaving(true);
         try {
@@ -105,6 +113,7 @@ export default function DriverKycScreen({ navigation }) {
             Object.entries(docs).forEach(([k, v]) => { if (v?.url) docsPayload[k] = v.url; });
             await api.post('/verifications/driver', {
                 ...form,
+                date_of_birth:     formatDateForApi(form.date_of_birth),
                 docs: docsPayload,
                 appointment_date:  appt.date    || null,
                 office_location:   appt.office  || null,
@@ -215,7 +224,7 @@ export default function DriverKycScreen({ navigation }) {
                             { key: 'date_of_birth',      label: 'Date de naissance', placeholder: 'JJ/MM/AAAA', keyboardType: 'default' },
                             { key: 'phone',              label: 'Téléphone', placeholder: '+237 6XX XXX XXX', keyboardType: 'phone-pad' },
                             { key: 'address',            label: 'Adresse', placeholder: 'Rue, Quartier', keyboardType: 'default' },
-                            { key: 'city',               label: 'Ville', placeholder: 'Yaoundé', keyboardType: 'default' },
+                            { key: 'city',               label: 'Ville', placeholder: 'Libreville', keyboardType: 'default' },
                             { key: 'national_id_number', label: 'N° CNI / Passeport', placeholder: '123456789', keyboardType: 'default' },
                             { key: 'license_number',     label: 'N° Permis de conduire', placeholder: 'XX-XXX-XXXX', keyboardType: 'default' },
                         ].map(f => (

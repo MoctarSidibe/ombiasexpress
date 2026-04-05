@@ -206,10 +206,29 @@ export default function KycStatusScreen({ navigation, route }) {
 
                 {/* Actions */}
                 <View style={styles.actions}>
+                    {status === 'draft' && (
+                        <TouchableOpacity
+                            style={[styles.restartBtn, { backgroundColor: '#FFA726' }]}
+                            onPress={() => navigation.replace(
+                                type === 'driver'   ? 'DriverKyc'   :
+                                type === 'fleet'    ? 'FleetKyc'    :
+                                type === 'merchant' ? 'MerchantKyc' :
+                                type === 'courier'  ? 'CourierKyc'  : 'CarKyc'
+                            )}
+                        >
+                            <Ionicons name="create-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+                            <Text style={styles.restartBtnText}>Continuer mon dossier</Text>
+                        </TouchableOpacity>
+                    )}
                     {isRejected && (
                         <TouchableOpacity
                             style={styles.restartBtn}
-                            onPress={() => navigation.replace(type === 'driver' ? 'DriverKyc' : type === 'fleet' ? 'FleetKyc' : type === 'merchant' ? 'MerchantKyc' : type === 'courier' ? 'CourierKyc' : 'CarKyc')}
+                            onPress={() => navigation.replace(
+                                type === 'driver'   ? 'DriverKyc'   :
+                                type === 'fleet'    ? 'FleetKyc'    :
+                                type === 'merchant' ? 'MerchantKyc' :
+                                type === 'courier'  ? 'CourierKyc'  : 'CarKyc'
+                            )}
                         >
                             <Ionicons name="refresh" size={18} color="#fff" style={{ marginRight: 8 }} />
                             <Text style={styles.restartBtnText}>Soumettre un nouveau dossier</Text>
