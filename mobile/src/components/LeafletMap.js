@@ -152,6 +152,12 @@ function setMarkers(markers) {
     } else {
       var mk = L.marker([lat, lng], { icon: icon });
       if (m.title) mk.bindTooltip(m.title, { permanent: false });
+      (function(markerId) {
+        mk.on('click', function(e) {
+          L.DomEvent.stopPropagation(e);
+          send('markerPress', { id: markerId });
+        });
+      })(m.id);
       mk.addTo(map);
       markersMap[m.id] = mk;
     }
@@ -235,6 +241,7 @@ const LeafletMap = forwardRef(function LeafletMap(props, ref) {
         markers = [],
         polylines = [],
         onPress,
+        onMarkerPress,
         onMapReady,
         onRegionChangeComplete,
     } = props;
@@ -307,6 +314,8 @@ const LeafletMap = forwardRef(function LeafletMap(props, ref) {
                     inject({ type: 'userLocation', lat: userLocation.latitude, lng: userLocation.longitude });
                 }
                 if (onMapReady) onMapReady();
+            } else if (msg.type === 'markerPress') {
+                if (onMarkerPress) onMarkerPress(msg.data.id);
             } else if (msg.type === 'press') {
                 if (onPress) onPress({ latitude: msg.data.latitude, longitude: msg.data.longitude });
             } else if (msg.type === 'regionChange') {

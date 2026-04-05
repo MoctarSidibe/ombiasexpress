@@ -149,6 +149,7 @@ const RentalMapScreen = ({ navigation }) => {
                     initialRegion={initialRegion}
                     showsUserLocation
                     userLocation={userLocation}
+                    mapType={mapType}
                     markers={[
                         ...(searchCenter ? [{ id: 'search', coordinate: searchCenter, type: 'pin', title: 'Zone de recherche' }] : []),
                         ...cars.map(car => ({
@@ -159,6 +160,12 @@ const RentalMapScreen = ({ navigation }) => {
                         })),
                     ]}
                     onPress={handleMapPress}
+                    onMarkerPress={(markerId) => {
+                        // markerId = 'car-{id}'
+                        const carId = markerId.replace('car-', '');
+                        const car = cars.find(c => String(c.id) === carId);
+                        if (car) setSelectedCar(car);
+                    }}
                 />
 
                 {loading && (
