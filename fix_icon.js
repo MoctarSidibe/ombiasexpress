@@ -12,8 +12,8 @@ const DEST = path.join(__dirname, 'mobile/assets/adaptive-icon-fg.png');
 const BACKUP = path.join(__dirname, 'mobile/assets/adaptive-icon-fg.original.png');
 
 const CANVAS = 1024;
-// Logo at 82% of canvas — maximum size before Android launcher cropping
-const LOGO_SIZE = Math.round(CANVAS * 0.82);
+// Logo at 90% — fills the icon nicely on dark background
+const LOGO_SIZE = Math.round(CANVAS * 0.90);
 const PADDING   = Math.round((CANVAS - LOGO_SIZE) / 2);
 
 async function run() {
