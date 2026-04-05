@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     },
     benefitRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         marginBottom: 12,
     },
     benefitDot: {
@@ -305,11 +305,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 12,
+        marginTop: 1,
+        flexShrink: 0,
     },
     benefitText: {
+        flex: 1,
         fontSize: 15,
         color: '#333',
         fontWeight: '500',
+        lineHeight: 22,
     },
 
     /* ── Notice ── */
