@@ -190,7 +190,7 @@
         left: 0;
         right: 0;
         width: 100%;
-        height: 56px;
+        height: 64px;
         background: #1C2E4A;
         padding: 0 16px;
         z-index: 200;
@@ -212,8 +212,8 @@
     .hamburger:hover { background: rgba(255,255,255,0.1); }
 
     .mobile-logo {
-        width: 32px;
-        height: 32px;
+        width: 48px;
+        height: 48px;
         object-fit: contain;
     }
 
@@ -248,7 +248,7 @@
         width: 100% !important;
         max-width: 100vw;
         padding: 12px;
-        padding-top: 68px;
+        padding-top: 76px;
         overflow-x: hidden;
     }
 
