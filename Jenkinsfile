@@ -59,12 +59,14 @@ pipeline {
 
         stage('Publish APK') {
             steps {
-                sh '''
-                    mkdir -p /var/www/ombiaexpress/downloads
-                    cp mobile/android/app/build/outputs/apk/release/app-release.apk \
-                       /var/www/ombiaexpress/downloads/ombia-express.apk
-                    echo "APK published — http://37.60.240.199/downloads/ombia-express.apk"
-                '''
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh '''
+                        mkdir -p /var/www/ombiaexpress/downloads
+                        cp mobile/android/app/build/outputs/apk/release/app-release.apk \
+                           /var/www/ombiaexpress/downloads/ombia-express.apk
+                        echo "APK published — http://37.60.240.199/downloads/ombia-express.apk"
+                    '''
+                }
             }
         }
     }
