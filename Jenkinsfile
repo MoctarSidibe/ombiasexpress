@@ -40,8 +40,6 @@ pipeline {
 
         stage('Build Release APK') {
             environment {
-                // NODE_ENV=production ici uniquement — évite que npm install
-                // skippe les devDependencies (vite) dans les stages admin
                 NODE_ENV = 'production'
             }
             steps {
@@ -58,6 +56,17 @@ pipeline {
                 }
             }
         }
+
+        stage('Publish APK') {
+            steps {
+                sh '''
+                    mkdir -p /var/www/ombiaexpress/downloads
+                    cp mobile/android/app/build/outputs/apk/release/app-release.apk \
+                       /var/www/ombiaexpress/downloads/ombia-express.apk
+                    echo "APK published — http://37.60.240.199/downloads/ombia-express.apk"
+                '''
+            }
+        }
     }
 
     post {
@@ -66,7 +75,7 @@ pipeline {
                 artifacts: 'mobile/android/app/build/outputs/apk/release/app-release.apk',
                 fingerprint: true
             )
-            echo 'APK ready — download from Jenkins Artifacts tab.'
+            echo 'APK ready — share this link to partners: http://37.60.240.199/downloads/ombia-express.apk'
         }
         failure {
             echo 'Build failed — check the console output above.'

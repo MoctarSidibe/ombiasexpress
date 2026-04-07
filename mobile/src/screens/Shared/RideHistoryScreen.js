@@ -375,62 +375,63 @@ export default function RideHistoryScreen() {
             <View style={styles.header}>
                 <Text style={styles.title}>Activités</Text>
                 <Text style={styles.subtitle}>
-                    {rides.length + deliveries.length + rentals.length + orders.length} transactions
+                    {rides.length + deliveries.length + rentals.length + orders.length} éléments
                 </Text>
             </View>
 
-            {/* Scrollable tab bar — compact pill style */}
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.tabBarWrap}
-                contentContainerStyle={styles.tabBarContent}
-            >
+            {/* Static category grid — 5 equal columns, no scroll */}
+            <View style={styles.categoryGrid}>
                 {TABS.map(t => {
                     const active = activeTab === t.key;
                     const count  = (rawDataMap[t.key] || []).length;
                     return (
                         <TouchableOpacity
                             key={t.key}
-                            style={[
-                                styles.tabChip,
-                                active && { backgroundColor: t.color + '15', borderColor: t.color },
-                            ]}
+                            style={[styles.categoryItem, active && { borderBottomColor: t.color, borderBottomWidth: 2.5 }]}
                             onPress={() => { setActiveTab(t.key); setSubFilter('all'); }}
                             activeOpacity={0.7}
                         >
-                            <Ionicons name={t.icon} size={15} color={active ? t.color : '#B0B8C1'} />
-                            <Text style={[styles.tabChipLabel, active && { color: t.color, fontWeight: '800' }]}>
+                            <View style={[styles.categoryIconWrap, { backgroundColor: active ? t.color + '18' : '#F3F4F6' }]}>
+                                <Ionicons name={t.icon} size={18} color={active ? t.color : '#9CA3AF'} />
+                                {count > 0 && (
+                                    <View style={[styles.categoryBadge, { backgroundColor: active ? t.color : '#D1D5DB' }]}>
+                                        <Text style={styles.categoryBadgeText}>{count > 9 ? '9+' : count}</Text>
+                                    </View>
+                                )}
+                            </View>
+                            <Text style={[styles.categoryLabel, active && { color: t.color, fontWeight: '700' }]}>
                                 {t.label}
                             </Text>
-                            {count > 0 && (
-                                <View style={[styles.tabBadge, { backgroundColor: active ? t.color : '#D1D5DB' }]}>
-                                    <Text style={styles.tabBadgeText}>{count > 99 ? '99+' : count}</Text>
-                                </View>
-                            )}
                         </TouchableOpacity>
                     );
                 })}
-            </ScrollView>
+            </View>
 
-            {/* Sub-filter chips */}
+            {/* Sub-filter chips — simple row, no horizontal scroll needed */}
             {(SUB_FILTERS[activeTab] || []).length > 1 && (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}
-                    style={{ backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}
-                    contentContainerStyle={{ paddingHorizontal: 14, paddingVertical: 8, gap: 8, flexDirection: 'row' }}>
-                    {(SUB_FILTERS[activeTab] || []).map(sf => {
-                        const isActive = subFilter === sf.key;
-                        const tabCfg = TABS.find(t => t.key === activeTab);
-                        const color  = tabCfg?.color || '#1C2E4A';
-                        return (
-                            <TouchableOpacity key={sf.key}
-                                style={[styles.subFilterChip, isActive && { borderColor: color, backgroundColor: color + '12' }]}
-                                onPress={() => setSubFilter(sf.key)}>
-                                <Text style={[styles.subFilterLabel, isActive && { color, fontWeight: '700' }]}>{sf.label}</Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </ScrollView>
+                <View style={styles.subFilterBar}>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.subFilterContent}
+                    >
+                        {(SUB_FILTERS[activeTab] || []).map(sf => {
+                            const isActive = subFilter === sf.key;
+                            const color = TABS.find(t => t.key === activeTab)?.color || '#1C2E4A';
+                            return (
+                                <TouchableOpacity
+                                    key={sf.key}
+                                    style={[styles.subFilterChip, isActive && { borderColor: color, backgroundColor: color + '12' }]}
+                                    onPress={() => setSubFilter(sf.key)}
+                                >
+                                    <Text style={[styles.subFilterLabel, isActive && { color, fontWeight: '700' }]}>
+                                        {sf.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </ScrollView>
+                </View>
             )}
 
             {/* Content */}
@@ -482,45 +483,62 @@ const styles = StyleSheet.create({
     subtitle: { fontSize: 12, color: '#9CA3AF' },
     center:   { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-    // ── Scrollable tab bar ────────────────────────────────────────────────────
-    tabBarWrap: {
+    // ── Static category grid ──────────────────────────────────────────────────
+    categoryGrid: {
+        flexDirection: 'row',
         backgroundColor: '#fff',
         borderBottomWidth: 1,
         borderBottomColor: '#F0F0F0',
+        paddingTop: 8,
     },
-    tabBarContent: {
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        gap: 8,
-        flexDirection: 'row',
+    categoryItem: {
+        flex: 1,
         alignItems: 'center',
+        paddingBottom: 8,
+        borderBottomWidth: 2.5,
+        borderBottomColor: 'transparent',
     },
-    tabChip: {
-        flexDirection: 'row',
+    categoryIconWrap: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
         alignItems: 'center',
-        gap: 5,
-        paddingHorizontal: 12,
-        paddingVertical: 7,
-        borderRadius: 20,
-        borderWidth: 1.5,
-        borderColor: '#E8EAF0',
-        backgroundColor: '#F8F9FB',
+        justifyContent: 'center',
+        marginBottom: 4,
+        position: 'relative',
     },
-    tabBadge: {
-        minWidth: 16,
-        height: 16,
+    categoryBadge: {
+        position: 'absolute',
+        top: -4,
+        right: -4,
+        minWidth: 15,
+        height: 15,
         borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 3,
+        paddingHorizontal: 2,
     },
-    tabBadgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
-    tabChipLabel:  { fontSize: 12, fontWeight: '600', color: '#B0B8C1' },
+    categoryBadgeText: { fontSize: 8, fontWeight: '800', color: '#fff' },
+    categoryLabel: { fontSize: 10, fontWeight: '600', color: '#9CA3AF' },
 
-    // ── Sub-filter chips ──────────────────────────────────────────────────────
+    // ── Sub-filter bar ────────────────────────────────────────────────────────
+    subFilterBar: {
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+    },
+    subFilterContent: {
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        flexDirection: 'row',
+        gap: 8,
+    },
     subFilterChip: {
-        paddingHorizontal: 14, paddingVertical: 6,
-        borderRadius: 20, borderWidth: 1.5, borderColor: '#E5E7EB',
+        paddingHorizontal: 14,
+        paddingVertical: 6,
+        borderRadius: 20,
+        borderWidth: 1.5,
+        borderColor: '#E5E7EB',
         backgroundColor: '#F9FAFB',
     },
     subFilterLabel: { fontSize: 12, fontWeight: '600', color: '#9CA3AF' },
